@@ -40,6 +40,8 @@ var mutationRate = 0.05;
 //helps calculate mutation
 var mutationStep = 0.2;
 
+var lastMove = null
+
 /**
  * Returns the current game state in an object.
  * @return {State} The current game state.
@@ -283,4 +285,150 @@ function makeChild(mum, dad) {
         child.holes = child.holes + Math.random() * mutationStep * 2 - mutationStep;
     }
     return child;
+}
+
+const posibleMov = {
+    UP: 'up',
+    DOWN: 'down',
+    RIGHT: 'right',
+    LEFT: 'left'
+}
+
+function canMove(movement){
+    // TODO
+    return true;
+}
+
+/**
+ * Returns an array of all the possible moves that could occur in the current state, rated by the parameters of the current genome.
+ * @return {Array} An array of all the possible moves that could occur.
+ */
+function getAllPossibleMoves() {
+    var lastState = getState();
+    var possibleMoves = [];
+    //for each possible rotation
+    for (var movement in posibleMov){
+        if (canMove(movement)){
+            iterations++;
+            loadState(lastState);
+            makeMovement(movement)
+            //set the 7 parameters of a genome
+            var algorithm = {
+                maxiumNumber: getMaximumNumber(),
+                holes: getHoles()
+            };
+            //rate each move
+            var rating = 0;
+            rating += algorithm.rowsCleared * genomes[currentGenome].maxiumNumber;
+            rating += algorithm.holes * genomes[currentGenome].holes;
+            //if the move loses the game, lower its rating
+            // if (moveDownResults.lose) {
+            //     rating -= 500;
+            // }
+            //push all possible moves, with their associated ratings and parameter values to an array
+            // TODO change object to push
+            possibleMoves.push( // TODO push object
+                {rotations: rots, translation: t, rating: rating, algorithm: algorithm});
+            
+        }
+    }
+    //get last state
+    loadState(lastState);
+    //return array of all possible moves
+    return possibleMoves;
+}
+
+/**
+ * Returns the highest rated move in the given array of moves.
+ * @param  {Array} moves An array of possible moves to choose from.
+ * @return {Move}       The highest rated move from the moveset.
+ */
+function getHighestRatedMove(moves) {
+    //start these values off small
+    var maxRating = -10000000000000;
+    var maxMove = -1;
+    var ties = [];
+    //iterate through the list of moves
+    for (var index = 0; index < moves.length; index++) {
+        //if the current moves rating is higher than our maxrating
+        if (moves[index].rating > maxRating) {
+            //update our max values to include this moves values
+            maxRating = moves[index].rating;
+            maxMove = index;
+            //store index of this move
+            ties = [index];
+        } else if (moves[index].rating == maxRating) {
+            //if it ties with the max rating
+            //add the index to the ties array
+            ties.push(index);
+        }
+    }
+    //eventually we'll set the highest move value to this move var
+   var move = moves[ties[0]];
+   //and set the number of ties
+   move.algorithm.ties = ties.length;
+   return move;
+}
+
+/**
+ * Makes a move, which is decided upon using the parameters in the current genome.
+ */
+function makeNextMove() {
+    //increment number of moves taken
+    movesTaken++;
+    //if its over the limit of moves
+    if (movesTaken > moveLimit) {
+        //update this genomes fitness value using the game score
+        genomes[currentGenome].fitness = clone(score);
+        //and evaluates the next genome
+        evaluateNextGenome();
+    } else {
+        //time to make a move
+
+        //we're going to re-draw, so lets store the old drawing
+        var oldDraw = clone(draw);
+        draw = false;
+        //get all the possible moves
+        var possibleMoves = getAllPossibleMoves();
+        //lets store the current state since we will update it
+        var lastState = getState();
+        //whats the next shape to play
+        nextShape();
+        //for each possible move 
+        for (var i = 0; i < possibleMoves.length; i++) {
+            //get the best move. so were checking all the possible moves, for each possible move. moveception.
+            var nextMove = getHighestRatedMove(getAllPossibleMoves());
+            //add that rating to an array of highest rates moves
+            possibleMoves[i].rating += nextMove.rating;
+        }
+        //load current state
+        loadState(lastState);
+        //get the highest rated move ever
+        var move = getHighestRatedMove(possibleMoves);
+        //then rotate the shape as it says too
+        for (var rotations = 0; rotations < move.rotations; rotations++) {
+            rotateShape();
+        }
+        //and move left as it says
+        if (move.translation < 0) {
+            for (var lefts = 0; lefts < Math.abs(move.translation); lefts++) {
+                moveLeft();
+            }
+            //and right as it says
+        } else if (move.translation > 0) {
+            for (var rights = 0; rights < move.translation; rights++) {
+                moveRight();
+            }
+        }
+        //update our move algorithm
+        if (inspectMoveSelection) {
+            moveAlgorithm = move.algorithm;
+        }
+        //and set the old drawing to the current
+        draw = oldDraw;
+        //output the state to the screen
+        output();
+        //and update the score
+        updateScore();
+    }
 }
