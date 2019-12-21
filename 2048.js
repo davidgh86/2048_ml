@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
   
   // Adds a tile in a random position
   GameManager.prototype.addRandomTile = function () {
+    // new number
     if (this.grid.cellsAvailable()) {
       var value = Math.random() < 0.9 ? 2 : 4;
       var tile = new Tile(this.grid.randomAvailableCell(), value);
