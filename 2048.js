@@ -2,7 +2,13 @@ document.addEventListener("DOMContentLoaded", function () {
     // Wait till the browser is ready to render the game (avoids glitches)
     window.requestAnimationFrame(function () {
       var manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetic);
+      
+      manager.moveUp();
+      manager.moveRight();
+
       manager.moveDown();
+      manager.moveLeft();
+
     });
   });
   
@@ -341,6 +347,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   GameManager.prototype.moveDown = function() {
     this.inputManager.emit("move", 2); // 40
+  }
+  GameManager.prototype.moveUp = function() {
+    this.inputManager.emit("move", 0); // 40
+  }
+  GameManager.prototype.moveRight = function() {
+    this.inputManager.emit("move", 1); // 40
+  }
+  GameManager.prototype.moveLeft = function() {
+    this.inputManager.emit("move", 3); // 40
   }
 
   /**
