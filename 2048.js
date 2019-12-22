@@ -1,22 +1,66 @@
 document.addEventListener("DOMContentLoaded", function () {
     // Wait till the browser is ready to render the game (avoids glitches)
     window.requestAnimationFrame(function () {
-      var manager = new GameManager(4, KeyboardInputManager, HTMLActuator);
+      var manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetic);
     });
   });
   
-  
-  function GameManager(size, InputManager, Actuator) {
+  function EvolutionaryGenetic(mutationRate, mutationStep){
+    //GENETIC ALGORITHM VALUES
+    //stores number of genomes, init at 50 
+    this.populationSize = 50;
+    //stores genomes
+    this.genomes = [];
+    //index of current genome in genomes array
+    this.currentGenome = -1;
+    //generation number
+    this.generation = 0;
+    //stores values for a generation
+    this.archive = {
+      populationSize: 0,
+      currentGeneration: 0,
+      elites: [],
+      genomes: []
+    };
+    //rate of mutation
+    this.mutationRate = mutationRate; //0.05;
+    //helps calculate mutation
+    this.mutationStep = mutationStep; //0.2;
+  }
+
+  function GameManager(size, InputManager, Actuator, Genetic) {
     this.size         = size; // Size of the grid
     this.inputManager = new InputManager;
     this.actuator     = new Actuator;
-  
+    this.genetic      = new Genetic(0.05, 0.2)
+
     this.startTiles   = 2;
   
     this.inputManager.on("move", this.move.bind(this));
     this.inputManager.on("restart", this.restart.bind(this));
   
     this.setup();
+  
+  }
+
+  /**
+   * Clones an object.
+   * @param  {Object} obj The object to clone.
+   * @return {Object}     The cloned object.
+   */
+  function clone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  GameManager.prototype.getState = function() {
+    var state = {
+      grid: clone(this.grid),
+      rndSeed: clone(this.rndSeed),
+      score: clone(this.score),
+      over: clone(this.over),
+      won: clone(this.won)
+    };
+    return state;
   }
   
   // Restart the game
@@ -29,9 +73,13 @@ document.addEventListener("DOMContentLoaded", function () {
   GameManager.prototype.setup = function () {
     this.grid         = new Grid(this.size);
   
+    this.rndSeed      = 1;
     this.score        = 0;
     this.over         = false;
     this.won          = false;
+
+    this.saveState = this.getState();
+	  this.roundState = this.getState();
   
     // Add the initial tiles
     this.addStartTiles();
@@ -437,8 +485,6 @@ document.addEventListener("DOMContentLoaded", function () {
     this.messageContainer.classList.remove("game-won", "game-over");
   };
   
-  
-  
   function KeyboardInputManager() {
     this.events = {};
   
@@ -515,10 +561,6 @@ document.addEventListener("DOMContentLoaded", function () {
     event.preventDefault();
     this.emit("restart");
   };
-  
-  
-  
-  
   
   function Tile(position, value) {
     this.x                = position.x;
