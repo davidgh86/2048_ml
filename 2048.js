@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       manager.moveDown();
       manager.moveLeft();
-
+      
     });
   });
   
