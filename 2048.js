@@ -77,6 +77,8 @@ document.addEventListener("DOMContentLoaded", function () {
     this.score        = 0;
     this.over         = false;
     this.won          = false;
+    this.movesTaken   = 0;
+    this.moveLimit    = 5000;
 
     this.saveState = this.getState();
 	  this.roundState = this.getState();
@@ -239,6 +241,122 @@ document.addEventListener("DOMContentLoaded", function () {
       next: cell // Used to check if a merge is required
     };
   };
+
+  /**
+   * Returns an array of all the possible moves that could occur in the current state, rated by the parameters of the current genome.
+   * @return {Array} An array of all the possible moves that could occur.
+   */
+  GameManager.prototype.getAllPossibleMoves = function() {
+    var lastState = getState();
+    var possibleMoves = [];
+
+    //for each possible 3 moves
+    for (var rots = 0; rots < 4; rots++) {
+
+      loadState(lastState);
+
+      var algorithm = {
+        rowsCleared: moveDownResults.rowsCleared,
+        weightedHeight: Math.pow(getHeight(), 1.5),
+        cumulativeHeight: getCumulativeHeight(),
+        relativeHeight: getRelativeHeight(),
+        holes: getHoles(),
+        roughness: getRoughness()
+      };
+
+      var rating = 0;
+      rating += algorithm.rowsCleared * genomes[currentGenome].rowsCleared;
+      rating += algorithm.weightedHeight * genomes[currentGenome].weightedHeight;
+      rating += algorithm.cumulativeHeight * genomes[currentGenome].cumulativeHeight;
+      rating += algorithm.relativeHeight * genomes[currentGenome].relativeHeight;
+      rating += algorithm.holes * genomes[currentGenome].holes;
+      rating += algorithm.roughness * genomes[currentGenome].roughness;
+      //if the move loses the game, lower its rating
+      if (moveDownResults.lose) {
+        rating -= 500;
+      }
+
+      //if the move loses the game, lower its rating
+      if (moveDownResults.lose) {
+        rating -= 500;
+      }
+      //push all possible moves, with their associated ratings and parameter values to an array
+      possibleMoves.push({rotations: rots, translation: t, rating: rating, algorithm: algorithm});
+    }
+    //get last state
+    this.loadState(lastState);
+    //return array of all possible moves
+    return possibleMoves;
+  }
+
+  /**
+   * Makes a move, which is decided upon using the parameters in the current genome.
+   */
+  GameManager.prototype.makeNextMove = function() {
+    //increment number of moves taken
+    this.movesTaken++;
+    //if its over the limit of moves
+    if (this.movesTaken > this.moveLimit) {
+      //update this genomes fitness value using the game score
+      this.genomes[currentGenome].fitness = clone(score);
+      //and evaluates the next genome
+      this.evaluateNextGenome();
+    } else {
+      //time to make a move
+      //get all the possible moves
+      let possibleMoves = this.getAllPossibleMoves();
+      //lets store the current state since we will update it
+      let lastState = this.getState();
+
+      //for each possible move 
+      for (let i = 0; i < possibleMoves.length; i++) {
+        //get the best move. so were checking all the possible moves, for each possible move. moveception.
+        let nextMove = this.getHighestRatedMove(this.getAllPossibleMoves());
+        //add that rating to an array of highest rates moves
+        possibleMoves[i].rating += nextMove.rating;
+      }
+      //load current state
+      this.loadState(lastState);
+      //get the highest rated move ever
+      let move = this.getHighestRatedMove(possibleMoves);
+      //and move left as it says
+      if (move.translation === 0) {
+        this.moveUp();
+        //and right as it says
+      } else if (move.translation === 1) {
+        this.moveRight();
+      } else if (move.translation === 2) {
+        this.moveDown();
+      } else if (move.translation === 3){
+        this.moveLeft();
+      }
+
+      //update our move algorithm
+      if (inspectMoveSelection) {
+        moveAlgorithm = move.algorithm;
+      }
+    }
+  }
+
+  /**
+  * Evaluates the next genome in the population. If there is none, evolves the population.
+  */
+  GameManager.prototype.evaluateNextGenome = function() {
+    //increment index in genome array
+    currentGenome++;
+    //If there is none, evolves the population.
+    if (currentGenome == genomes.length) {
+      evolve();
+    }
+    //load current gamestate
+    loadState(roundState);
+    //reset moves taken
+    movesTaken = 0;
+    //and make the next move
+    makeNextMove();
+  }
+
+
   
   GameManager.prototype.movesAvailable = function () {
     return this.grid.cellsAvailable() || this.tileMatchesAvailable();
