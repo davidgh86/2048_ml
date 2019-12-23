@@ -2,15 +2,29 @@ document.addEventListener("DOMContentLoaded", function () {
     // Wait till the browser is ready to render the game (avoids glitches)
     window.requestAnimationFrame(function () {
       var manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetic);
-      
-      manager.moveUp();
-      manager.moveRight();
+      manager.genetic.createInitialPopulation(manager)
+      // manager.evaluateNextGenome();
+      // let interval = 1000;
+      // var myVar = setInterval(()=> {
+      //   setTimeout(function() {
+      //     manager.moveUp();
+      //   }, 0);
 
-      manager.moveDown();
-      manager.moveLeft();
+      //   setTimeout(function() {
+      //     manager.moveRight();
+      //   }, interval);
+
+      //   setTimeout(function() {
+      //     manager.moveDown();
+      //   }, interval * 2);
+
+      //   setTimeout(function() {
+      //     manager.moveLeft();
+      //   }, interval * 3);
+      // }, interval * 4);
       
     });
-  });
+  });  
   
   function EvolutionaryGenetic(mutationRate, mutationStep){
     //GENETIC ALGORITHM VALUES
@@ -34,6 +48,82 @@ document.addEventListener("DOMContentLoaded", function () {
     //helps calculate mutation
     this.mutationStep = mutationStep; //0.2;
   }
+
+    /**
+   * Creates the initial population of genomes, each with random genes.
+   */
+  EvolutionaryGenetic.prototype.createInitialPopulation = function(manager) {
+    //inits the array
+    this.genomes = [];
+    //for a given population size
+    for (var i = 0; i < this.populationSize; i++) {
+      //randomly initialize the 7 values that make up a genome
+      //these are all weight values that are updated through evolution
+      var genome = {
+        id: Math.random(),
+        //The weight of each row cleared by the given move. the more rows that are cleared, the more this weight increases
+        highestNumber: Math.random() - 0.5,
+        holes: Math.random() - 0.5,
+      };
+      //add them to the array
+      this.genomes.push(genome);
+    }
+    manager.evaluateNextGenome();
+  }
+
+  /**
+  * Evolves the entire population and goes to the next generation.
+  */
+  EvolutionaryGenetic.prototype.evolve = function () {
+ 
+    //reset current genome for new generation
+    this.currentGenome = 0;
+    //increment generation
+    this.generation++;
+
+    //gets the current game state
+    //roundState = getState();
+    //sorts genomes in decreasing order of fitness values
+    this.genomes.sort(function(a, b) {
+      return b.fitness - a.fitness;
+    });
+    //add a copy of the fittest genome to the elites list
+    this.archive.elites.push(clone(this.genomes[0]));
+    
+    //remove the tail end of genomes, focus on the fittest
+    while(this.genomes.length > this.populationSize / 2) {
+      this.genomes.pop();
+    }
+    //sum of the fitness for each genome
+    var totalFitness = 0;
+    for (var i = 0; i < genomes.length; i++) {
+      this.totalFitness += this.genomes[i].fitness;
+    }
+ 
+    //get a random index from genome array
+   function getRandomGenome() {
+     return genomes[randomWeightedNumBetween(0, this.genomes.length - 1)];
+   }
+   //create children array
+   var children = [];
+   //add the fittest genome to array
+   children.push(clone(genomes[0]));
+   //add population sized amount of children
+   while (children.length < this.populationSize) {
+     //crossover between two random genomes to make a child
+     children.push(makeChild(getRandomGenome(), getRandomGenome()));
+   }
+   //create new genome array
+   this.genomes = [];
+   //to store all the children in
+   this.genomes = this.genomes.concat(children);
+   //store this in our archive
+   this.archive.genomes = clone(this.genomes);
+   //and set current gen
+   this.archive.currentGeneration = clone(generation);
+   //store archive, thanks JS localstorage! (short term memory)
+   localStorage.setItem("archive", JSON.stringify(archive));
+ }
 
   function GameManager(size, InputManager, Actuator, Genetic) {
     this.size         = size; // Size of the grid
@@ -132,6 +222,18 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   };
+
+  /**
+   * Loads the game state from the given state object.
+   * @param  {State} state The state to load.
+   */
+  GameManager.prototype.loadState = function(state) {
+    this.grid = clone(state.grid);
+    this.rndSeed = clone(state.rndSeed),
+    this.score = clone(state.score),
+    this.over = clone(state.over),
+    this.won = clone(state.won)
+  }
   
   // Move a tile and its representation
   GameManager.prototype.moveTile = function (tile, cell) {
@@ -363,13 +465,14 @@ document.addEventListener("DOMContentLoaded", function () {
   */
   GameManager.prototype.evaluateNextGenome = function() {
     //increment index in genome array
-    currentGenome++;
+    this.genetic.currentGenome++;
     //If there is none, evolves the population.
-    if (currentGenome == genomes.length) {
-      evolve();
+    if (this.genetic.currentGenome == this.genetic.genomes.length) {
+      this.roundState = this.getState();
+      this.genetic.evolve();
     }
     //load current gamestate
-    loadState(roundState);
+    this.loadState(roundState);
     //reset moves taken
     movesTaken = 0;
     //and make the next move
@@ -415,8 +518,6 @@ document.addEventListener("DOMContentLoaded", function () {
   GameManager.prototype.positionsEqual = function (first, second) {
     return first.x === second.x && first.y === second.y;
   };
-  
-  
   
   function Grid(size) {
     this.size = size;
@@ -528,8 +629,14 @@ document.addEventListener("DOMContentLoaded", function () {
   
       self.updateScore(metadata.score);
   
-      if (metadata.over) self.message(false); // You lose
-      if (metadata.won) self.message(true); // You win!
+      if (metadata.over) {
+        self.message(false); // You lose
+        genomes[currentGenome].fitness = clone(score);
+      }
+      if (metadata.won) {
+        self.message(true); // You win!
+        genomes[currentGenome].fitness = clone(score);
+      }
     });
   };
   
