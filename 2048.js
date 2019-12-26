@@ -10,6 +10,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     this.gameManager = gameManager;
 
+    //rate of mutation
+    this.mutationRate = 0.05;
+    //helps calculate mutation
+    this.mutationStep = 0.2;
+
     this.currentGenome = {
       id: Math.random(),
       holesWeigth: Math.random() - 0.5,
@@ -18,7 +23,55 @@ document.addEventListener("DOMContentLoaded", function () {
       maximumPositionColWeigth: Math.random() - 0.5
     };
 
-    this.genomes.push(this.currentGenome)
+    //this.genomes.push(this.currentGenome)
+  }
+
+  EvolutionaryGenetics.prototype.evolve = function(){
+    this.currentGenome["score"] = this.gameManager.score;
+    this.genomes.push(this.currentGenome);
+    
+
+
+  }
+
+  function randomChoice(propOne, propTwo) {
+    if (Math.round(Math.random()) === 0) {
+      return clone(propOne);
+    } else {
+      return clone(propTwo);
+    }
+  }
+
+  EvolutionaryGenetics.prototype.makeChild = function() {
+    // TODO return new genomes
+    this.sortGenomes()
+    if (this.genomes.length === 1){
+      this.genomes.push(this.currentGenome);
+    }
+    this.currentGenome = {
+      id: Math.random(),
+      holesWeigth: randomChoice(this.genomes[0], this.genomes[1]),
+      roughnessWeigth: randomChoice(this.genomes[0], this.genomes[1]),
+      maximumPositionRowWeigth: randomChoice(this.genomes[0], this.genomes[1]),
+      maximumPositionColWeigth: randomChoice(this.genomes[0], this.genomes[1])
+    };
+
+    if (Math.random() < mutationRate) {
+      this.currentGenome.holesWeigth = this.currentGenome.holesWeigth + Math.random() * this.mutationStep * 2 - this.mutationStep;
+    }
+    if (Math.random() < mutationRate) {
+      this.currentGenome.roughnessWeigth = this.currentGenome.roughnessWeigth + Math.random() * this.mutationStep * 2 - this.mutationStep;
+    }
+    if (Math.random() < mutationRate) {
+      this.currentGenome.maximumPositionRowWeigth = this.currentGenome.maximumPositionRowWeigth + Math.random() * this.mutationStep * 2 - this.mutationStep;
+    }
+    if (Math.random() < mutationRate) {
+      this.currentGenome.maximumPositionColWeigth = this.currentGenome.maximumPositionColWeigth + Math.random() * this.mutationStep * 2 - this.mutationStep;
+    }
+  }
+
+  EvolutionaryGenetics.prototype.sortGenomes = function(){
+    // TODO
   }
 
   EvolutionaryGenetics.prototype.getMoveRating = function(grid) {
@@ -141,10 +194,10 @@ document.addEventListener("DOMContentLoaded", function () {
     let gameMoveDown = clone(this)
     let gameMoveLeft = clone(this)
     
-    gameMoveUp.move(0)
-    gameMoveRight.move(1)
-    gameMoveDown.move(2)
-    gameMoveLeft.move(3)
+    gameMoveUp.move(0, true)
+    gameMoveRight.move(1, true)
+    gameMoveDown.move(2, true)
+    gameMoveLeft.move(3, true)
 
     let upRating = this.getMoveRating(gameMoveUp.grid)
     let rightRating = this.getMoveRating(gameMoveRight.grid)
@@ -152,25 +205,25 @@ document.addEventListener("DOMContentLoaded", function () {
     let leftRating = this.getMoveRating(gameMoveLeft.grid)
 
     if (
-        upRating >= rightRating &&
-        upRating >= downRating &&
-        upRating >= leftRating
-      ){
-        return 0     
+      upRating >= rightRating &&
+      upRating >= downRating &&
+      upRating >= leftRating
+    ){
+        return 0;     
     }
     if (
       rightRating >= upRating &&
       rightRating >= downRating &&
       rightRating >= leftRating
     ){
-      return 1     
+      return 1;     
     }
     if (
       downRating >= upRating &&
-      downRating >= downRating &&
+      downRating >= rightRating &&
       downRating >= leftRating
     ){
-      return 2   
+      return 2;   
     }
     else return 3;
     
@@ -178,6 +231,7 @@ document.addEventListener("DOMContentLoaded", function () {
   
   // Restart the game
   GameManager.prototype.restart = function () {
+    wqefqwefthis.adsfasfqwfa adsfa
     this.actuator.restart();
     this.setup();
   };
