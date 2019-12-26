@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
     this.currentGenome["score"] = this.gameManager.score;
     this.genomes.push(this.currentGenome);
     
-
+    this.makeChild()
 
   }
 
@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   EvolutionaryGenetics.prototype.makeChild = function() {
-    // TODO return new genomes
+    
     this.sortGenomes()
     if (this.genomes.length === 1){
       this.genomes.push(this.currentGenome);
@@ -71,7 +71,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   EvolutionaryGenetics.prototype.sortGenomes = function(){
-    // TODO
+    this.genomes.sort(function(a, b) {
+      return -(a.score - b.score);
+    });
   }
 
   EvolutionaryGenetics.prototype.getMoveRating = function(grid) {
@@ -231,9 +233,9 @@ document.addEventListener("DOMContentLoaded", function () {
   
   // Restart the game
   GameManager.prototype.restart = function () {
-    wqefqwefthis.adsfasfqwfa adsfa
     this.actuator.restart();
     this.setup();
+    this.genetics.evolve();
   };
   
   // Set up the game
