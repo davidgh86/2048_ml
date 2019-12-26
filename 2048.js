@@ -1,15 +1,87 @@
 document.addEventListener("DOMContentLoaded", function () {
     // Wait till the browser is ready to render the game (avoids glitches)
     window.requestAnimationFrame(function () {
-      var manager = new GameManager(4, KeyboardInputManager, HTMLActuator);
+      var manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetics);
     });
   });
+
+  function EvolutionaryGenetics(){
+
+  }
   
+  EvolutionaryGenetics.prototype.normalizeGrid = function (grid){
+    const normalizedCells = clone(grid.cells)
+    for (let row = 0; row<normalizedCells.length; row++){
+      for (let cell = 0; cell<normalizedCells[row].length; cell++){
+        let value = normalizedCells[row][cell];
+        if (!!value && value !== 0){
+          normalizedCells[row][cell] = Math.log2(value)
+        }
+      }
+    }
+    return normalizedCells;
+  }
+
+  EvolutionaryGenetics.prototype.getNumberOfHoles = function(arrayGrid){
+    let result = 0
+    for (let iRow = 0; iRow<arrayGrid.length; iRow++){
+      for (let iCol = 0; iCol<arrayGrid[iRow].length; iCol++){
+        if(!arrayGrid[row][column] || arrayGrid[row][column]===0){
+          result++
+        }
+      }
+    }
+    return result;
+  }
+
+  EvolutionaryGenetics.prototype.calculateRoughness = function(arrayGrid){
+    let result = 0;
+    for (let row = 0; row<arrayGrid.length; row++){
+      for (let col= 0; col<arrayGrid.length; col++){
+        result += this.calculateRoughnessPivotValue(arrayGrid, row, col);
+      }
+    }
+    return result;
+  }
+
+  EvolutionaryGenetics.prototype.calculateRoughnessPivotValue = function (arrayGrid, row, column) {
+    let normalizedGrid = this.normalizeGrid(arrayGrid)
+    let pivotValue = normalizedGrid[row][column];
+    let result = 0;
+    for (let iRow = 0; iRow<normalizedGrid.length; iRow++){
+      for (let iCol = 0; iCol<normalizedGrid[iRow].length; iCol++){
+        if((iRow !== row || iCol !== column) && normalizedGrid[row][column]!==0){
+          result += 0
+        }else{
+          let finalCellValue = Math.abs(normalizedGrid[row][column] - pivotValue)
+          finalCellValue = finalCellValue / Math.pow(this.calculateDistance(iRow, iCol, row, column), 2)
+          result += finalCellValue;
+        }
+      }
+    }
+    return result;
+  }
+
+  EvolutionaryGenetics.prototype.calculateDistance = function(rowIndex, columnIndex, pivotRowIndex, pivotColumnIndex) {
+    let irow = rowIndex - pivotRowIndex
+    let iCol = columnIndex - pivotColumnIndex
+    return Math.abs(irow-iCol);
+  }
   
-  function GameManager(size, InputManager, Actuator) {
+  /**
+ * Clones an object.
+ * @param  {Object} obj The object to clone.
+ * @return {Object}     The cloned object.
+ */
+ function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+  
+  function GameManager(size, InputManager, Actuator, Genetics) {
     this.size         = size; // Size of the grid
     this.inputManager = new InputManager;
     this.actuator     = new Actuator;
+    this.genetics     = new Genetics;
   
     this.startTiles   = 2;
   
