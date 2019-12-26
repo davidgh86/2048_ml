@@ -5,8 +5,52 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  function EvolutionaryGenetics(){
+  function EvolutionaryGenetics(gameManager){
+    this.genomes = []
 
+    this.gameManager = gameManager;
+
+    this.currentGenome = {
+      id: Math.random(),
+      holesWeigth: Math.random() - 0.5,
+      roughnessWeigth: Math.random() - 0.5,
+      maximumPositionRowWeigth: Math.random() - 0.5,
+      maximumPositionColWeigth: Math.random() - 0.5
+    };
+
+    this.genomes.push(this.currentGenome)
+  }
+
+  EvolutionaryGenetics.prototype.getMoveRating = function(grid) {
+    const rating = 0;
+    const maximumPosition = this.getMaximumPosition(grid);
+
+    var algorithm = {
+      holes: this.getNumberOfHoles(grid),
+      roughness: this.calculateRoughness(grid),
+      maximumPositionHighRow: maximumPosition.row,
+      maximumPositionHighColumn: maximumPosition.column
+    };
+
+    rating += algorithm.holes * this.currentGenome.holesWeigth;
+    rating += algorithm.roughness * this.currentGenome.roughnessWeigth;
+    rating += algorithm.maximumPositionHighRow * this.currentGenome.maximumPositionRowWeigth;
+    rating += algorithm.maximumPositionHighColumn * this.currentGenome.maximumPositionColWeigth;
+
+    return rating
+  }
+
+  EvolutionaryGenetics.prototype.getMaximumPosition = function (grid){
+    let result = {row: 0, column: 0}
+    let maximum = 0;
+    for (let iRow = 0; iRow<arrayGrid.length; iRow++){
+      for (let iCol = 0; iCol<arrayGrid[iRow].length; iCol++){
+        if(!!arrayGrid[row][column] && arrayGrid[row][column]!==0 && arrayGrid[row][column]>maximum){
+          result = {row: iRow, column: iCol}
+        }
+      }
+    }
+    return result;
   }
   
   EvolutionaryGenetics.prototype.normalizeGrid = function (grid){
@@ -81,7 +125,7 @@ document.addEventListener("DOMContentLoaded", function () {
     this.size         = size; // Size of the grid
     this.inputManager = new InputManager;
     this.actuator     = new Actuator;
-    this.genetics     = new Genetics;
+    this.genetics     = new Genetics(this);
   
     this.startTiles   = 2;
   
@@ -89,6 +133,47 @@ document.addEventListener("DOMContentLoaded", function () {
     this.inputManager.on("restart", this.restart.bind(this));
   
     this.setup();
+  }
+
+  GameManager.prototype.getNextMove = function() {
+    let gameMoveUp = clone(this);
+    let gameMoveRight = clone(this)
+    let gameMoveDown = clone(this)
+    let gameMoveLeft = clone(this)
+    
+    gameMoveUp.move(0)
+    gameMoveRight.move(1)
+    gameMoveDown.move(2)
+    gameMoveLeft.move(3)
+
+    let upRating = this.getMoveRating(gameMoveUp.grid)
+    let rightRating = this.getMoveRating(gameMoveRight.grid)
+    let downRating = this.getMoveRating(gameMoveDown.grid)
+    let leftRating = this.getMoveRating(gameMoveLeft.grid)
+
+    if (
+        upRating >= rightRating &&
+        upRating >= downRating &&
+        upRating >= leftRating
+      ){
+        return 0     
+    }
+    if (
+      rightRating >= upRating &&
+      rightRating >= downRating &&
+      rightRating >= leftRating
+    ){
+      return 1     
+    }
+    if (
+      downRating >= upRating &&
+      downRating >= downRating &&
+      downRating >= leftRating
+    ){
+      return 2   
+    }
+    else return 3;
+    
   }
   
   // Restart the game
@@ -156,7 +241,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
   
   // Move tiles on the grid in the specified direction
-  GameManager.prototype.move = function (direction) {
+  GameManager.prototype.move = function (direction, simulate=false) {
     // 0: up, 1: right, 2:down, 3: left
     var self = this;
   
@@ -208,7 +293,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   
-    if (moved) {
+    if (moved && !simulate) {
       this.addRandomTile();
   
       if (!this.movesAvailable()) {
