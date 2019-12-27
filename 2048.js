@@ -2,13 +2,20 @@ document.addEventListener("DOMContentLoaded", function () {
     // Wait till the browser is ready to render the game (avoids glitches)
     window.requestAnimationFrame(function () {
       var manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetics);
-      setInterval(manager.iteration(manager), 3000)
+      
     });
+    setInterval(iterate("dafsd"), 3000)
     
   });
 
   GameManager.prototype.iteration = function(gameManager){
-    gameManager.makeNextMove();
+    alert("fsda")
+    //gameManager.makeNextMove();
+  }
+
+  var iterate = function(gameManager){
+    alert("fsda")
+    //gameManager.makeNextMove();
   }
 
   function EvolutionaryGenetics(gameManager){
@@ -92,11 +99,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  EvolutionaryGenetics.prototype.getMoveRating = function(grid) {
-    const rating = 0;
+  EvolutionaryGenetics.prototype.getMoveRating = function(gridObject) {
+    let grid = gridObject.toArray()
+    let rating = 0;
     const maximumPosition = this.getMaximumPosition(grid);
 
-    var algorithm = {
+    let algorithm = {
       holes: this.getNumberOfHoles(grid),
       roughness: this.calculateRoughness(grid),
       maximumPositionHighRow: maximumPosition.row,
@@ -111,13 +119,14 @@ document.addEventListener("DOMContentLoaded", function () {
     return rating
   }
 
-  EvolutionaryGenetics.prototype.getMaximumPosition = function (grid){
+  EvolutionaryGenetics.prototype.getMaximumPosition = function (arrayGrid){
     let result = {row: 0, column: 0}
     let maximum = 0;
     for (let iRow = 0; iRow<arrayGrid.length; iRow++){
       for (let iCol = 0; iCol<arrayGrid[iRow].length; iCol++){
-        if(!!arrayGrid[row][column] && arrayGrid[row][column]!==0 && arrayGrid[row][column]>maximum){
+        if(!!arrayGrid[iRow][iCol] && arrayGrid[iRow][iCol]!==0 && arrayGrid[iRow][iCol]>maximum){
           result = {row: iRow, column: iCol}
+          maximum = arrayGrid[iRow][iCol]
         }
       }
     }
@@ -125,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   
   EvolutionaryGenetics.prototype.normalizeGrid = function (grid){
-    const normalizedCells = clone(grid.cells)
+    const normalizedCells = clone(grid)
     for (let row = 0; row<normalizedCells.length; row++){
       for (let cell = 0; cell<normalizedCells[row].length; cell++){
         let value = normalizedCells[row][cell];
@@ -141,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let result = 0
     for (let iRow = 0; iRow<arrayGrid.length; iRow++){
       for (let iCol = 0; iCol<arrayGrid[iRow].length; iCol++){
-        if(!arrayGrid[row][column] || arrayGrid[row][column]===0){
+        if(!arrayGrid[iRow][iCol] || arrayGrid[iRow][iCol]===0){
           result++
         }
       }
@@ -165,10 +174,10 @@ document.addEventListener("DOMContentLoaded", function () {
     let result = 0;
     for (let iRow = 0; iRow<normalizedGrid.length; iRow++){
       for (let iCol = 0; iCol<normalizedGrid[iRow].length; iCol++){
-        if((iRow !== row || iCol !== column) && normalizedGrid[row][column]!==0){
+        if((iRow === row && iCol === column) || normalizedGrid[iRow][iCol]===0){
           result += 0
         }else{
-          let finalCellValue = Math.abs(normalizedGrid[row][column] - pivotValue)
+          let finalCellValue = Math.abs(normalizedGrid[iRow][iCol] - pivotValue)
           finalCellValue = finalCellValue / Math.pow(this.calculateDistance(iRow, iCol, row, column), 2)
           result += finalCellValue;
         }
@@ -178,9 +187,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   EvolutionaryGenetics.prototype.calculateDistance = function(rowIndex, columnIndex, pivotRowIndex, pivotColumnIndex) {
-    let irow = rowIndex - pivotRowIndex
-    let iCol = columnIndex - pivotColumnIndex
-    return Math.abs(irow-iCol);
+    let irow = Math.abs(rowIndex - pivotRowIndex)
+    let iCol = Math.abs(columnIndex - pivotColumnIndex)
+    return Math.abs(irow+iCol);
   }
   
   /**
@@ -208,14 +217,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   GameManager.prototype.makeNextMove = function(){
     let nextMove = this.getNextMove();
+    alert(nextMove)
     this.inputManager.emit("move", nextMove)
   }
 
   GameManager.prototype.getNextMove = function() {
-    let gameMoveUp = clone(this);
-    let gameMoveRight = clone(this)
-    let gameMoveDown = clone(this)
-    let gameMoveLeft = clone(this)
+    let gameMoveUp= Object.create(this) 
+    let gameMoveRight = Object.create(this)
+    let gameMoveDown = Object.create(this)
+    let gameMoveLeft = Object.create(this)
     
     gameMoveUp.move(0, true)
     gameMoveRight.move(1, true)
@@ -536,6 +546,24 @@ document.addEventListener("DOMContentLoaded", function () {
       return null;
     }
   };
+
+  Grid.prototype.toArray = function() {
+    let resultMatrix = []
+    for (let row = 0; row<this.cells.length; row++){
+      let resultRow = []
+      for (let col=0; col<this.cells[row].length; col++){
+        let tile = this.cells[row][col];
+        if (tile != null){
+          let cellContent = this.cellContent(this.cells[row][col])
+          resultRow.push(!!cellContent?cellContent.value:0);
+        }else {
+          resultRow.push(0)
+        }
+      }
+      resultMatrix.push(resultRow)
+    }
+    return resultMatrix;
+  }
   
   // Inserts a tile at its position
   Grid.prototype.insertTile = function (tile) {
