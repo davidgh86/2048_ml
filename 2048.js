@@ -2,8 +2,14 @@ document.addEventListener("DOMContentLoaded", function () {
     // Wait till the browser is ready to render the game (avoids glitches)
     window.requestAnimationFrame(function () {
       var manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetics);
+      setInterval(manager.iteration(manager), 3000)
     });
+    
   });
+
+  GameManager.prototype.iteration = function(gameManager){
+    gameManager.makeNextMove();
+  }
 
   function EvolutionaryGenetics(gameManager){
     this.genomes = []
@@ -15,23 +21,33 @@ document.addEventListener("DOMContentLoaded", function () {
     //helps calculate mutation
     this.mutationStep = 0.2;
 
-    this.currentGenome = {
+    this.currentGenome = this.generateRandomGenome();
+
+    //this.genomes.push(this.currentGenome)
+  }
+
+
+
+  EvolutionaryGenetics.prototype.generateRandomGenome = function(){
+    return {
       id: Math.random(),
       holesWeigth: Math.random() - 0.5,
       roughnessWeigth: Math.random() - 0.5,
       maximumPositionRowWeigth: Math.random() - 0.5,
       maximumPositionColWeigth: Math.random() - 0.5
     };
-
-    //this.genomes.push(this.currentGenome)
   }
 
   EvolutionaryGenetics.prototype.evolve = function(){
     this.currentGenome["score"] = this.gameManager.score;
     this.genomes.push(this.currentGenome);
     
-    this.makeChild()
-
+    if (this.genomes.length<2){
+      this.currentGenome = this.generateRandomGenome();
+    }
+    else{
+      this.makeChild()
+    }
   }
 
   function randomChoice(propOne, propTwo) {
@@ -190,6 +206,11 @@ document.addEventListener("DOMContentLoaded", function () {
     this.setup();
   }
 
+  GameManager.prototype.makeNextMove = function(){
+    let nextMove = this.getNextMove();
+    this.inputManager.emit("move", nextMove)
+  }
+
   GameManager.prototype.getNextMove = function() {
     let gameMoveUp = clone(this);
     let gameMoveRight = clone(this)
@@ -201,10 +222,10 @@ document.addEventListener("DOMContentLoaded", function () {
     gameMoveDown.move(2, true)
     gameMoveLeft.move(3, true)
 
-    let upRating = this.getMoveRating(gameMoveUp.grid)
-    let rightRating = this.getMoveRating(gameMoveRight.grid)
-    let downRating = this.getMoveRating(gameMoveDown.grid)
-    let leftRating = this.getMoveRating(gameMoveLeft.grid)
+    let upRating = this.genetics.getMoveRating(gameMoveUp.grid)
+    let rightRating = this.genetics.getMoveRating(gameMoveRight.grid)
+    let downRating = this.genetics.getMoveRating(gameMoveDown.grid)
+    let leftRating = this.genetics.getMoveRating(gameMoveLeft.grid)
 
     if (
       upRating >= rightRating &&
@@ -349,7 +370,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   
-    if (moved && !simulate) {
+    if (moved){ //&& !simulate) {
       this.addRandomTile();
   
       if (!this.movesAvailable()) {
