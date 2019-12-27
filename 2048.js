@@ -2,20 +2,15 @@ document.addEventListener("DOMContentLoaded", function () {
     // Wait till the browser is ready to render the game (avoids glitches)
     window.requestAnimationFrame(function () {
       var manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetics);
-      
+      setInterval(iterate(manager), 3000)
     });
-    setInterval(iterate("dafsd"), 3000)
     
   });
 
-  GameManager.prototype.iteration = function(gameManager){
-    alert("fsda")
-    //gameManager.makeNextMove();
-  }
-
+  //GameManager.prototype.
   var iterate = function(gameManager){
-    alert("fsda")
-    //gameManager.makeNextMove();
+    //alert("fsda")
+    gameManager.makeNextMove();
   }
 
   function EvolutionaryGenetics(gameManager){
@@ -217,7 +212,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   GameManager.prototype.makeNextMove = function(){
     let nextMove = this.getNextMove();
-    alert(nextMove)
     this.inputManager.emit("move", nextMove)
   }
 
@@ -226,6 +220,11 @@ document.addEventListener("DOMContentLoaded", function () {
     let gameMoveRight = Object.create(this)
     let gameMoveDown = Object.create(this)
     let gameMoveLeft = Object.create(this)
+
+    // let gameMoveUp = clone(this.grid.toArray())
+    // let gameMoveRight = clone(this.grid.toArray())
+    // let gameMoveDown = clone(this.grid.toArray())
+    // let gameMoveLeft = clone(this.grid.toArray())
     
     gameMoveUp.move(0, true)
     gameMoveRight.move(1, true)
