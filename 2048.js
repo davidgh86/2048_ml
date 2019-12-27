@@ -1,11 +1,19 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
     // Wait till the browser is ready to render the game (avoids glitches)
-    window.requestAnimationFrame(function () {
-      var manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetics);
-      setInterval(iterate(manager), 3000)
+    let manager = null
+    await window.requestAnimationFrame(async function () {
+      manager = await new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetics);
+      
     });
-    
+    window.setInterval(iterate(manager), 1000)
   });
+
+
+  //GameManager.prototype.
+  function iterate (gameManager){
+    //alert("fsda")
+    gameManager.makeNextMove();
+  }
 
   function calculateNextMove(arrayGrid, dir) {
     if (dir==0){
@@ -91,12 +99,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     return resultTraversable;
 
-  }
-
-  //GameManager.prototype.
-  var iterate = function(gameManager){
-    //alert("fsda")
-    gameManager.makeNextMove();
   }
 
   function EvolutionaryGenetics(gameManager){
