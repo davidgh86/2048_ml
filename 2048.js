@@ -1,11 +1,10 @@
 document.addEventListener("DOMContentLoaded", async function () {
     // Wait till the browser is ready to render the game (avoids glitches)
-    let manager = null
-    await window.requestAnimationFrame(async function () {
-      manager = await new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetics);
-      
+    window.requestAnimationFrame(async function () {
+      let manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetics);
+      setInterval(()=>iterate(manager), 1000)
     });
-    window.setInterval(iterate(manager), 1000)
+    
   });
 
 
