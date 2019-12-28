@@ -299,6 +299,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     this.inputManager.emit("move", nextMove)
   }
 
+  function gridArrayEquals(grid1, grid2){
+    return JSON.stringify(grid1)===JSON.stringify(grid2)
+  }
+
+  function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
   GameManager.prototype.getNextMove = function() {
     
     let currentArrayGrid = clone(this.grid.toArray())
@@ -307,10 +317,21 @@ document.addEventListener("DOMContentLoaded", async function () {
     let gameMoveDown = calculateNextMove(currentArrayGrid, 2)
     let gameMoveLeft = calculateNextMove(currentArrayGrid, 3)
 
-    let upRating = this.genetics.getMoveRating(gameMoveUp)
-    let rightRating = this.genetics.getMoveRating(gameMoveRight)
-    let downRating = this.genetics.getMoveRating(gameMoveDown)
-    let leftRating = this.genetics.getMoveRating(gameMoveLeft)
+    let maxRating = -99999999999999;
+
+    let upRating = gridArrayEquals(currentArrayGrid, gameMoveUp)?maxRating:this.genetics.getMoveRating(gameMoveUp)
+    let rightRating = gridArrayEquals(currentArrayGrid, gameMoveUp)?maxRating:this.genetics.getMoveRating(gameMoveRight)
+    let downRating = gridArrayEquals(currentArrayGrid, gameMoveUp)?maxRating:this.genetics.getMoveRating(gameMoveDown)
+    let leftRating = gridArrayEquals(currentArrayGrid, gameMoveUp)?maxRating:this.genetics.getMoveRating(gameMoveLeft)
+
+    if(
+      upRating===maxRating &&
+      leftRating===maxRating &&
+      rightRating===maxRating &&
+      downRating===maxRating
+    ){
+      return getRandomInt(0,3)
+    }
 
     if (
       upRating >= rightRating &&
