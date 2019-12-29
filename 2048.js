@@ -441,8 +441,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     // 0: up, 1: right, 2:down, 3: left
     var self = this;
   
-    if (this.over || this.won) return; // Don't do anything if the game's over
-  
+    if (this.over) {
+      this.inputManager.emit("restart")
+      return; // Don't do anything if the game's over
+      
+    }
     var cell, tile;
   
     var vector     = this.getVector(direction);
@@ -477,7 +480,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             self.score += merged.value;
   
             // The mighty 2048 tile
-            if (merged.value === 2048) self.won = true;
+            //if (merged.value === 2048) self.won = true;
           } else {
             self.moveTile(tile, positions.farthest);
           }
@@ -714,8 +717,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   
       self.updateScore(metadata.score);
   
-      if (metadata.over) self.message(false); // You lose
-      if (metadata.won) self.message(true); // You win!
+      //if (metadata.over) self.message(false); // You lose
+      //if (metadata.won) self.message(true); // You win!
+      
     });
   };
   
