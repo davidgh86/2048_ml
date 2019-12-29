@@ -309,9 +309,23 @@ document.addEventListener("DOMContentLoaded", async function () {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
+  function transposeArrayGrid(arrayGrid){
+    let result = []
+    for (let col = 0; col<arrayGrid[0].length; col++){
+      let resultRow = []
+      for (let row = 0; row<arrayGrid.length; row++){
+        resultRow.push(arrayGrid[row][col])
+      }
+      result.push(resultRow)
+    }
+    return result;
+  }
+
   GameManager.prototype.getNextMove = function() {
     
     let currentArrayGrid = clone(this.grid.toArray())
+    // due to the internal representation of the game we need to transpose the grid
+    
     let gameMoveUp = calculateNextMove(currentArrayGrid, 0)
     let gameMoveRight = calculateNextMove(currentArrayGrid, 1)
     let gameMoveDown = calculateNextMove(currentArrayGrid, 2)
@@ -320,9 +334,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     let maxRating = -99999999999999;
 
     let upRating = gridArrayEquals(currentArrayGrid, gameMoveUp)?maxRating:this.genetics.getMoveRating(gameMoveUp)
-    let rightRating = gridArrayEquals(currentArrayGrid, gameMoveUp)?maxRating:this.genetics.getMoveRating(gameMoveRight)
-    let downRating = gridArrayEquals(currentArrayGrid, gameMoveUp)?maxRating:this.genetics.getMoveRating(gameMoveDown)
-    let leftRating = gridArrayEquals(currentArrayGrid, gameMoveUp)?maxRating:this.genetics.getMoveRating(gameMoveLeft)
+    let rightRating = gridArrayEquals(currentArrayGrid, gameMoveRight)?maxRating:this.genetics.getMoveRating(gameMoveRight)
+    let downRating = gridArrayEquals(currentArrayGrid, gameMoveDown)?maxRating:this.genetics.getMoveRating(gameMoveDown)
+    let leftRating = gridArrayEquals(currentArrayGrid, gameMoveLeft)?maxRating:this.genetics.getMoveRating(gameMoveLeft)
 
     if(
       upRating===maxRating &&
@@ -657,7 +671,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
       resultMatrix.push(resultRow)
     }
-    return resultMatrix;
+    
+    return transposeArrayGrid(resultMatrix);
   }
   
   // Inserts a tile at its position
