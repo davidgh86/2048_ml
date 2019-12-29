@@ -152,10 +152,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     this.sortGenomes()
     this.currentGenome = {
       id: Math.random(),
-      holesWeigth: randomChoice(this.genomes[0], this.genomes[1]),
-      roughnessWeigth: randomChoice(this.genomes[0], this.genomes[1]),
-      maximumPositionRowWeigth: randomChoice(this.genomes[0], this.genomes[1]),
-      maximumPositionColWeigth: randomChoice(this.genomes[0], this.genomes[1])
+      holesWeigth: randomChoice(this.genomes[0].holesWeigth, this.genomes[1].holesWeigth),
+      roughnessWeigth: randomChoice(this.genomes[0].roughnessWeigth, this.genomes[1].roughnessWeigth),
+      maximumPositionRowWeigth: randomChoice(this.genomes[0].maximumPositionRowWeigth, this.genomes[1].maximumPositionRowWeigth),
+      maximumPositionColWeigth: randomChoice(this.genomes[0].maximumPositionColWeigth, this.genomes[1].maximumPositionColWeigth)
     };
 
     if (Math.random() < this.mutationRate) {
