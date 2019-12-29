@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Wait till the browser is ready to render the game (avoids glitches)
     window.requestAnimationFrame(async function () {
       let manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetics);
-      setInterval(()=>iterate(manager), 1000)
+      setInterval(()=>iterate(manager), 500)
     });
     
   });
@@ -199,6 +199,10 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   EvolutionaryGenetics.prototype.getMaximumPosition = function (arrayGrid){
+    return getMaximumPosition(arrayGrid);
+  }
+
+  function getMaximumPosition(arrayGrid){
     let result = {row: 0, column: 0}
     let maximum = 0;
     for (let iRow = 0; iRow<arrayGrid.length; iRow++){
@@ -415,7 +419,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     this.actuator.actuate(this.grid, {
       score: this.score,
       over:  this.over,
-      won:   this.won
+      won:   this.won,
+      maximum: this.grid.getMaximumValue()
     });
   };
   
@@ -606,6 +611,18 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
     }
   };
+
+  Grid.prototype.getMaximumValue = function(){
+    let maximum =0
+    for (var x = 0; x < this.size; x++) {
+      for (var y = 0; y < this.size; y++) {
+        if (!!this.cells[x][y] && this.cells[x][y].value>maximum){
+          maximum = this.cells[x][y].value
+        }
+      }
+    }
+    return maximum;
+  }
   
   // Find the first available random position
   Grid.prototype.randomAvailableCell = function () {
@@ -717,10 +734,28 @@ document.addEventListener("DOMContentLoaded", async function () {
   
       self.updateScore(metadata.score);
   
-      //if (metadata.over) self.message(false); // You lose
+      if (metadata.over) {
+        self.updateHistoryList(metadata.score, metadata.maximum);
+      } // You lose
+      //if (metadata.won) self.message(false); // You win!
       //if (metadata.won) self.message(true); // You win!
       
     });
+  };
+
+  HTMLActuator.prototype.updateHistoryList = function (score, maximum) {
+    let scores= document.querySelector("#history-scores")
+    let text = scores.innerHTML;
+    let updatedText = `${text}<div></div>
+    <div>
+        ${score}
+    </div>
+    <div>
+        ${maximum}
+    </div>
+    <div class="space-left"></div>
+    `;
+    scores.innerHTML=updatedText;
   };
   
   HTMLActuator.prototype.restart = function () {
