@@ -1,88 +1,390 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
     // Wait till the browser is ready to render the game (avoids glitches)
-    window.requestAnimationFrame(function () {
-      var manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetic);
-      manager.moveDown();
+    window.requestAnimationFrame(async function () {
+      let manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetics);
+      setInterval(()=>iterate(manager), 1000)
     });
+    
   });
-  
-  function EvolutionaryGenetic(mutationRate, mutationStep){
-    //GENETIC ALGORITHM VALUES
-    //stores number of genomes, init at 50 
-    this.populationSize = 50;
-    //stores genomes
-    this.genomes = [];
-    //index of current genome in genomes array
-    this.currentGenome = -1;
-    //generation number
-    this.generation = 0;
-    //stores values for a generation
-    this.archive = {
-      populationSize: 0,
-      currentGeneration: 0,
-      elites: [],
-      genomes: []
-    };
-    //rate of mutation
-    this.mutationRate = mutationRate; //0.05;
-    //helps calculate mutation
-    this.mutationStep = mutationStep; //0.2;
+
+
+  //GameManager.prototype.
+  function iterate (gameManager){
+    //alert("fsda")
+    gameManager.makeNextMove();
   }
 
-  function GameManager(size, InputManager, Actuator, Genetic) {
+  function calculateNextMove(arrayGrid, dir) {
+    if (dir==0){
+      return calculateNextUpFunction(arrayGrid)
+    }else if(dir==1){
+      return calculateNextRightFunction(arrayGrid)
+    }else if(dir==2){
+      return calculateNextDownFunction(arrayGrid)
+    }else{
+      return calculateNextLeftFunction(arrayGrid)
+    }
+  }
+
+  function calculateNextUpFunction(arrayGrid) {
+    let rotatedArray = rotateArray270(arrayGrid)
+    let rotatedMergedArray = calculateNextLeftFunction(rotatedArray)
+    return rotateArray90(rotatedMergedArray)
+  }
+
+  function calculateNextDownFunction(arrayGrid) {
+    let rotatedArray = rotateArray90(arrayGrid)
+    let rotatedMergedArray = calculateNextLeftFunction(rotatedArray)
+    return rotateArray270(rotatedMergedArray)
+  }
+
+  function calculateNextRightFunction(arrayGrid){
+    let rotatedArray = rotateArray180(arrayGrid)
+    let rotatedMergedArray = calculateNextLeftFunction(rotatedArray)
+    return rotateArray180(rotatedMergedArray)
+  }
+
+  function calculateNextLeftFunction(arrayGrid){
+    let resultArrayGrid = []
+    for (let i=0; i<arrayGrid.length; i++){
+      resultArrayGrid.push(moveTraversable(arrayGrid[i]))
+    }
+    return resultArrayGrid;
+  }
+
+  function rotateArray90(arrayGrid){
+    let resultArray = []
+    for (i=0; i<arrayGrid[0].length; i++){
+      let resultVector = []
+      for (j=(arrayGrid.length-1); j>=0; j--){
+        resultVector.push(arrayGrid[j][i])
+      }
+      resultArray.push(resultVector)
+    }
+    return resultArray;
+  }
+
+  function rotateArray180(arrayGrid){
+    return rotateArray90(rotateArray90(arrayGrid))
+  }
+
+  function rotateArray270(arrayGrid){
+    return rotateArray180(rotateArray90(arrayGrid))
+  }
+
+  function moveTraversable(vectorGrid) {
+    let movableElements = []
+    for(let i=0; i<vectorGrid.length; i++){
+      if (vectorGrid[i]!==0){
+        movableElements.push(vectorGrid[i])
+      }
+    }
+    for(let i=0; i<(movableElements.length-1); i++){
+      if (movableElements[i]===movableElements[i+1]){
+        movableElements[i]=movableElements[i]*2
+        movableElements[i+1]=0
+      }
+    }
+    let resultTraversable = []
+    let count = 0;
+    for(let i=0; i<movableElements.length; i++){
+      if (movableElements[i]!==0){
+        count++;
+        resultTraversable.push(movableElements[i])
+      }
+    }
+    for (; count<4; count++){
+      resultTraversable.push(0)
+    }
+    return resultTraversable;
+
+  }
+
+  function EvolutionaryGenetics(gameManager){
+    this.genomes = []
+
+    this.gameManager = gameManager;
+
+    //rate of mutation
+    this.mutationRate = 0.05;
+    //helps calculate mutation
+    this.mutationStep = 0.2;
+
+    this.currentGenome = this.generateRandomGenome();
+
+    //this.genomes.push(this.currentGenome)
+  }
+
+
+
+  EvolutionaryGenetics.prototype.generateRandomGenome = function(){
+    return {
+      id: Math.random(),
+      holesWeigth: Math.random() - 0.5,
+      roughnessWeigth: Math.random() - 0.5,
+      maximumPositionRowWeigth: Math.random() - 0.5,
+      maximumPositionColWeigth: Math.random() - 0.5
+    };
+  }
+
+  EvolutionaryGenetics.prototype.evolve = function(){
+    this.currentGenome["score"] = this.gameManager.score;
+    this.genomes.push(this.currentGenome);
+    
+    if (this.genomes.length<2){
+      this.currentGenome = this.generateRandomGenome();
+    }
+    else{
+      this.makeChild()
+    }
+  }
+
+  function randomChoice(propOne, propTwo) {
+    if (Math.round(Math.random()) === 0) {
+      return clone(propOne);
+    } else {
+      return clone(propTwo);
+    }
+  }
+
+  EvolutionaryGenetics.prototype.makeChild = function() {
+    
+    this.sortGenomes()
+    this.currentGenome = {
+      id: Math.random(),
+      holesWeigth: randomChoice(this.genomes[0], this.genomes[1]),
+      roughnessWeigth: randomChoice(this.genomes[0], this.genomes[1]),
+      maximumPositionRowWeigth: randomChoice(this.genomes[0], this.genomes[1]),
+      maximumPositionColWeigth: randomChoice(this.genomes[0], this.genomes[1])
+    };
+
+    if (Math.random() < this.mutationRate) {
+      this.currentGenome.holesWeigth = this.currentGenome.holesWeigth + Math.random() * this.mutationStep * 2 - this.mutationStep;
+    }
+    if (Math.random() < this.mutationRate) {
+      this.currentGenome.roughnessWeigth = this.currentGenome.roughnessWeigth + Math.random() * this.mutationStep * 2 - this.mutationStep;
+    }
+    if (Math.random() < this.mutationRate) {
+      this.currentGenome.maximumPositionRowWeigth = this.currentGenome.maximumPositionRowWeigth + Math.random() * this.mutationStep * 2 - this.mutationStep;
+    }
+    if (Math.random() < this.mutationRate) {
+      this.currentGenome.maximumPositionColWeigth = this.currentGenome.maximumPositionColWeigth + Math.random() * this.mutationStep * 2 - this.mutationStep;
+    }
+  }
+
+  EvolutionaryGenetics.prototype.sortGenomes = function(){
+    this.genomes.sort(function(a, b) {
+      return -(a.score - b.score);
+    });
+  }
+
+  EvolutionaryGenetics.prototype.getMoveRating = function(grid) {
+    
+    let rating = 0;
+    const maximumPosition = this.getMaximumPosition(grid);
+
+    let algorithm = {
+      holes: this.getNumberOfHoles(grid),
+      roughness: this.calculateRoughness(grid),
+      maximumPositionHighRow: maximumPosition.row,
+      maximumPositionHighColumn: maximumPosition.column
+    };
+
+    rating += algorithm.holes * this.currentGenome.holesWeigth;
+    rating += algorithm.roughness * this.currentGenome.roughnessWeigth;
+    rating += algorithm.maximumPositionHighRow * this.currentGenome.maximumPositionRowWeigth;
+    rating += algorithm.maximumPositionHighColumn * this.currentGenome.maximumPositionColWeigth;
+
+    return rating
+  }
+
+  EvolutionaryGenetics.prototype.getMaximumPosition = function (arrayGrid){
+    let result = {row: 0, column: 0}
+    let maximum = 0;
+    for (let iRow = 0; iRow<arrayGrid.length; iRow++){
+      for (let iCol = 0; iCol<arrayGrid[iRow].length; iCol++){
+        if(!!arrayGrid[iRow][iCol] && arrayGrid[iRow][iCol]!==0 && arrayGrid[iRow][iCol]>maximum){
+          result = {row: iRow, column: iCol}
+          maximum = arrayGrid[iRow][iCol]
+        }
+      }
+    }
+    return result;
+  }
+  
+  EvolutionaryGenetics.prototype.normalizeGrid = function (grid){
+    const normalizedCells = clone(grid)
+    for (let row = 0; row<normalizedCells.length; row++){
+      for (let cell = 0; cell<normalizedCells[row].length; cell++){
+        let value = normalizedCells[row][cell];
+        if (!!value && value !== 0){
+          normalizedCells[row][cell] = Math.log2(value)
+        }
+      }
+    }
+    return normalizedCells;
+  }
+
+  EvolutionaryGenetics.prototype.getNumberOfHoles = function(arrayGrid){
+    let result = 0
+    for (let iRow = 0; iRow<arrayGrid.length; iRow++){
+      for (let iCol = 0; iCol<arrayGrid[iRow].length; iCol++){
+        if(!arrayGrid[iRow][iCol] || arrayGrid[iRow][iCol]===0){
+          result++
+        }
+      }
+    }
+    return result;
+  }
+
+  EvolutionaryGenetics.prototype.calculateRoughness = function(arrayGrid){
+    let result = 0;
+    for (let row = 0; row<arrayGrid.length; row++){
+      for (let col= 0; col<arrayGrid[row].length; col++){
+        result += this.calculateRoughnessPivotValue(arrayGrid, row, col);
+      }
+    }
+    return result;
+  }
+
+  EvolutionaryGenetics.prototype.calculateRoughnessPivotValue = function (arrayGrid, row, column) {
+    let normalizedGrid = this.normalizeGrid(arrayGrid)
+    let pivotValue = normalizedGrid[row][column];
+    let result = 0;
+    for (let iRow = 0; iRow<normalizedGrid.length; iRow++){
+      for (let iCol = 0; iCol<normalizedGrid[iRow].length; iCol++){
+        if((iRow === row && iCol === column) || normalizedGrid[iRow][iCol]===0){
+          result += 0
+        }else{
+          let finalCellValue = Math.abs(normalizedGrid[iRow][iCol] - pivotValue)
+          finalCellValue = finalCellValue / Math.pow(this.calculateDistance(iRow, iCol, row, column), 2)
+          result += finalCellValue;
+        }
+      }
+    }
+    return result;
+  }
+
+  EvolutionaryGenetics.prototype.calculateDistance = function(rowIndex, columnIndex, pivotRowIndex, pivotColumnIndex) {
+    let irow = Math.abs(rowIndex - pivotRowIndex)
+    let iCol = Math.abs(columnIndex - pivotColumnIndex)
+    return Math.abs(irow+iCol);
+  }
+  
+  /**
+ * Clones an object.
+ * @param  {Object} obj The object to clone.
+ * @return {Object}     The cloned object.
+ */
+ function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+  
+  function GameManager(size, InputManager, Actuator, Genetics) {
     this.size         = size; // Size of the grid
     this.inputManager = new InputManager;
     this.actuator     = new Actuator;
-    this.genetic      = new Genetic(0.05, 0.2)
-
+    this.genetics     = new Genetics(this);
+  
     this.startTiles   = 2;
   
     this.inputManager.on("move", this.move.bind(this));
     this.inputManager.on("restart", this.restart.bind(this));
   
     this.setup();
-  
   }
 
-  /**
-   * Clones an object.
-   * @param  {Object} obj The object to clone.
-   * @return {Object}     The cloned object.
-   */
-  function clone(obj) {
-    return JSON.parse(JSON.stringify(obj));
+  GameManager.prototype.makeNextMove = function(){
+    let nextMove = this.getNextMove();
+    this.inputManager.emit("move", nextMove)
   }
 
-  GameManager.prototype.getState = function() {
-    var state = {
-      grid: clone(this.grid),
-      rndSeed: clone(this.rndSeed),
-      score: clone(this.score),
-      over: clone(this.over),
-      won: clone(this.won)
-    };
-    return state;
+  function gridArrayEquals(grid1, grid2){
+    return JSON.stringify(grid1)===JSON.stringify(grid2)
+  }
+
+  function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function transposeArrayGrid(arrayGrid){
+    let result = []
+    for (let col = 0; col<arrayGrid[0].length; col++){
+      let resultRow = []
+      for (let row = 0; row<arrayGrid.length; row++){
+        resultRow.push(arrayGrid[row][col])
+      }
+      result.push(resultRow)
+    }
+    return result;
+  }
+
+  GameManager.prototype.getNextMove = function() {
+    
+    let currentArrayGrid = clone(this.grid.toArray())
+    // due to the internal representation of the game we need to transpose the grid
+    
+    let gameMoveUp = calculateNextMove(currentArrayGrid, 0)
+    let gameMoveRight = calculateNextMove(currentArrayGrid, 1)
+    let gameMoveDown = calculateNextMove(currentArrayGrid, 2)
+    let gameMoveLeft = calculateNextMove(currentArrayGrid, 3)
+
+    let maxRating = -99999999999999;
+
+    let upRating = gridArrayEquals(currentArrayGrid, gameMoveUp)?maxRating:this.genetics.getMoveRating(gameMoveUp)
+    let rightRating = gridArrayEquals(currentArrayGrid, gameMoveRight)?maxRating:this.genetics.getMoveRating(gameMoveRight)
+    let downRating = gridArrayEquals(currentArrayGrid, gameMoveDown)?maxRating:this.genetics.getMoveRating(gameMoveDown)
+    let leftRating = gridArrayEquals(currentArrayGrid, gameMoveLeft)?maxRating:this.genetics.getMoveRating(gameMoveLeft)
+
+    if(
+      upRating===maxRating &&
+      leftRating===maxRating &&
+      rightRating===maxRating &&
+      downRating===maxRating
+    ){
+      return getRandomInt(0,3)
+    }
+
+    if (
+      upRating >= rightRating &&
+      upRating >= downRating &&
+      upRating >= leftRating
+    ){
+        return 0;     
+    }
+    if (
+      rightRating >= upRating &&
+      rightRating >= downRating &&
+      rightRating >= leftRating
+    ){
+      return 1;     
+    }
+    if (
+      downRating >= upRating &&
+      downRating >= rightRating &&
+      downRating >= leftRating
+    ){
+      return 2;   
+    }
+    else return 3;
+    
   }
   
   // Restart the game
   GameManager.prototype.restart = function () {
     this.actuator.restart();
+    this.genetics.evolve();
     this.setup();
   };
   
   // Set up the game
   GameManager.prototype.setup = function () {
     this.grid         = new Grid(this.size);
-  
-    this.rndSeed      = 1;
     this.score        = 0;
     this.over         = false;
     this.won          = false;
-    this.movesTaken   = 0;
-    this.moveLimit    = 5000;
-
-    this.saveState = this.getState();
-	  this.roundState = this.getState();
   
     // Add the initial tiles
     this.addStartTiles();
@@ -135,7 +437,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
   
   // Move tiles on the grid in the specified direction
-  GameManager.prototype.move = function (direction) {
+  GameManager.prototype.move = function (direction, simulate=false) {
     // 0: up, 1: right, 2:down, 3: left
     var self = this;
   
@@ -187,7 +489,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   
-    if (moved) {
+    if (moved){ //&& !simulate) {
       this.addRandomTile();
   
       if (!this.movesAvailable()) {
@@ -242,126 +544,6 @@ document.addEventListener("DOMContentLoaded", function () {
       next: cell // Used to check if a merge is required
     };
   };
-
-  /**
-   * Returns an array of all the possible moves that could occur in the current state, rated by the parameters of the current genome.
-   * @return {Array} An array of all the possible moves that could occur.
-   */
-  GameManager.prototype.getAllPossibleMoves = function() {
-    var lastState = getState();
-    var possibleMoves = [];
-
-    //for each possible 3 moves
-    for (var rots = 0; rots < 4; rots++) {
-
-      loadState(lastState);
-
-      var algorithm = {
-        rowsCleared: moveDownResults.rowsCleared,
-        weightedHeight: Math.pow(getHeight(), 1.5),
-        cumulativeHeight: getCumulativeHeight(),
-        relativeHeight: getRelativeHeight(),
-        holes: getHoles(),
-        roughness: getRoughness()
-      };
-
-      var rating = 0;
-      rating += algorithm.rowsCleared * genomes[currentGenome].rowsCleared;
-      rating += algorithm.weightedHeight * genomes[currentGenome].weightedHeight;
-      rating += algorithm.cumulativeHeight * genomes[currentGenome].cumulativeHeight;
-      rating += algorithm.relativeHeight * genomes[currentGenome].relativeHeight;
-      rating += algorithm.holes * genomes[currentGenome].holes;
-      rating += algorithm.roughness * genomes[currentGenome].roughness;
-      //if the move loses the game, lower its rating
-      if (moveDownResults.lose) {
-        rating -= 500;
-      }
-
-      //if the move loses the game, lower its rating
-      if (moveDownResults.lose) {
-        rating -= 500;
-      }
-      //push all possible moves, with their associated ratings and parameter values to an array
-      possibleMoves.push({rotations: rots, translation: t, rating: rating, algorithm: algorithm});
-    }
-    //get last state
-    this.loadState(lastState);
-    //return array of all possible moves
-    return possibleMoves;
-  }
-
-  /**
-   * Makes a move, which is decided upon using the parameters in the current genome.
-   */
-  GameManager.prototype.makeNextMove = function() {
-    //increment number of moves taken
-    this.movesTaken++;
-    //if its over the limit of moves
-    if (this.movesTaken > this.moveLimit) {
-      //update this genomes fitness value using the game score
-      this.genomes[currentGenome].fitness = clone(score);
-      //and evaluates the next genome
-      this.evaluateNextGenome();
-    } else {
-      //time to make a move
-      //get all the possible moves
-      let possibleMoves = this.getAllPossibleMoves();
-      //lets store the current state since we will update it
-      let lastState = this.getState();
-
-      //for each possible move 
-      for (let i = 0; i < possibleMoves.length; i++) {
-        //get the best move. so were checking all the possible moves, for each possible move. moveception.
-        let nextMove = this.getHighestRatedMove(this.getAllPossibleMoves());
-        //add that rating to an array of highest rates moves
-        possibleMoves[i].rating += nextMove.rating;
-      }
-      //load current state
-      this.loadState(lastState);
-      //get the highest rated move ever
-      let move = this.getHighestRatedMove(possibleMoves);
-      //and move left as it says
-      if (move.translation === 0) {
-        this.moveUp();
-        //and right as it says
-      } else if (move.translation === 1) {
-        this.moveRight();
-      } else if (move.translation === 2) {
-        this.moveDown();
-      } else if (move.translation === 3){
-        this.moveLeft();
-      }
-
-      //update our move algorithm
-      if (inspectMoveSelection) {
-        moveAlgorithm = move.algorithm;
-      }
-    }
-  }
-
-  GameManager.prototype.moveDown = function() {
-    this.inputManager.emit("move", 2); // 40
-  }
-
-  /**
-  * Evaluates the next genome in the population. If there is none, evolves the population.
-  */
-  GameManager.prototype.evaluateNextGenome = function() {
-    //increment index in genome array
-    currentGenome++;
-    //If there is none, evolves the population.
-    if (currentGenome == genomes.length) {
-      evolve();
-    }
-    //load current gamestate
-    loadState(roundState);
-    //reset moves taken
-    movesTaken = 0;
-    //and make the next move
-    makeNextMove();
-  }
-
-
   
   GameManager.prototype.movesAvailable = function () {
     return this.grid.cellsAvailable() || this.tileMatchesAvailable();
@@ -473,6 +655,25 @@ document.addEventListener("DOMContentLoaded", function () {
       return null;
     }
   };
+
+  Grid.prototype.toArray = function() {
+    let resultMatrix = []
+    for (let row = 0; row<this.cells.length; row++){
+      let resultRow = []
+      for (let col=0; col<this.cells[row].length; col++){
+        let tile = this.cells[row][col];
+        if (tile != null){
+          let cellContent = this.cellContent(this.cells[row][col])
+          resultRow.push(!!cellContent?cellContent.value:0);
+        }else {
+          resultRow.push(0)
+        }
+      }
+      resultMatrix.push(resultRow)
+    }
+    
+    return transposeArrayGrid(resultMatrix);
+  }
   
   // Inserts a tile at its position
   Grid.prototype.insertTile = function (tile) {
@@ -608,6 +809,8 @@ document.addEventListener("DOMContentLoaded", function () {
     this.messageContainer.classList.remove("game-won", "game-over");
   };
   
+  
+  
   function KeyboardInputManager() {
     this.events = {};
   
@@ -684,6 +887,10 @@ document.addEventListener("DOMContentLoaded", function () {
     event.preventDefault();
     this.emit("restart");
   };
+  
+  
+  
+  
   
   function Tile(position, value) {
     this.x                = position.x;
