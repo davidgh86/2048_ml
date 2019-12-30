@@ -170,6 +170,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (Math.random() < this.mutationRate) {
       this.currentGenome.maximumPositionColWeigth = this.currentGenome.maximumPositionColWeigth + Math.random() * this.mutationStep * 2 - this.mutationStep;
     }
+    console.log(JSON.stringify(this.currentGenome))
   }
 
   EvolutionaryGenetics.prototype.sortGenomes = function(){
