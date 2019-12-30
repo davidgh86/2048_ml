@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     this.gameManager = gameManager;
 
     //rate of mutation
-    this.mutationRate = 0.05;
+    this.mutationRate = 0.2;
     //helps calculate mutation
     this.mutationStep = 0.2;
 
