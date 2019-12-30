@@ -1,7 +1,47 @@
+const db = firebase.firestore()
+
+function initializeDBListener(genetics) {
+  db.enablePersistence()
+  .catch(err => {
+      if (err.code == 'failed-precondition'){
+          // probably multiple tabs open at once
+         // console.log("persistence failed") 
+      } else if (err.code == 'unimplemented') {
+          // lack of browser support
+          // console.log("persistence is not available")
+      }
+    })
+  // real-time listener
+  db.collection('genomes').onSnapshot((snapshot) => {
+    // console.log(snapshot.docChanges())
+    snapshot.docChanges().forEach((change) => {
+        // console.log(change, change.doc.data(), change.doc.id)
+        if (change.type === 'added'){
+          genetics.genomes.push(change.doc.data())
+            //renderRecipe(change.doc.data(), change.doc.id)
+        }
+        // if (change.type === 'removed'){
+        //     removeRecipe(change.doc.id)
+        // }
+    });
+    genetics.generateNextGenome()
+  })
+}
+
+function persistGenome(genome){
+    db.collection('genomes').add(genome)
+      .catch(err => {
+            console.log(err)
+      })
+}
+
 document.addEventListener("DOMContentLoaded", async function () {
     // Wait till the browser is ready to render the game (avoids glitches)
     window.requestAnimationFrame(async function () {
       let manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetics);
+      let genetics = manager.genetics;
+      initializeDBListener(genetics)
+      
       setInterval(()=>iterate(manager), 500)
     });
     
@@ -129,8 +169,13 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   EvolutionaryGenetics.prototype.evolve = function(){
     this.currentGenome["score"] = this.gameManager.score;
-    this.genomes.push(this.currentGenome);
+    //this.genomes.push(this.currentGenome);
+    persistGenome(this.currentGenome)
     
+    this.generateNextGenome();
+  }
+
+  EvolutionaryGenetics.prototype.generateNextGenome = function(){
     if (this.genomes.length<2){
       this.currentGenome = this.generateRandomGenome();
     }
@@ -275,6 +320,21 @@ document.addEventListener("DOMContentLoaded", async function () {
     let iCol = Math.abs(columnIndex - pivotColumnIndex)
     return Math.abs(irow+iCol);
   }
+
+  EvolutionaryGenetics.prototype.justOneTileEmpty = function(arrayGrid){
+    let thereAreEmpty=false;
+    for (let i = 0; i<arrayGrid.length; i++){
+      for (let j = 0; j<arrayGrid[i].length; j++){
+        if (!arrayGrid[i][j] || arrayGrid===0){
+          if (thereAreEmpty){
+            return false;
+          }
+          thereAreEmpty=true;
+        }
+      }
+    }
+    return thereAreEmpty;
+  }
   
   /**
  * Clones an object.
@@ -342,6 +402,20 @@ document.addEventListener("DOMContentLoaded", async function () {
     let rightRating = gridArrayEquals(currentArrayGrid, gameMoveRight)?maxRating:this.genetics.getMoveRating(gameMoveRight)
     let downRating = gridArrayEquals(currentArrayGrid, gameMoveDown)?maxRating:this.genetics.getMoveRating(gameMoveDown)
     let leftRating = gridArrayEquals(currentArrayGrid, gameMoveLeft)?maxRating:this.genetics.getMoveRating(gameMoveLeft)
+
+    // avoiding makeing a move that leads to a game over
+    if (this.genetics.justOneTileEmpty(gameMoveUp)){
+      upRating -=500
+    }
+    if (this.genetics.justOneTileEmpty(gameMoveRight)){
+      rightRating -=500
+    }
+    if (this.genetics.justOneTileEmpty(gameMoveDown)){
+      downRating -=500
+    }
+    if (this.genetics.justOneTileEmpty(gameMoveLeft)){
+      leftRating -=500
+    }
 
     if(
       upRating===maxRating &&
@@ -927,10 +1001,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     event.preventDefault();
     this.emit("restart");
   };
-  
-  
-  
-  
   
   function Tile(position, value) {
     this.x                = position.x;

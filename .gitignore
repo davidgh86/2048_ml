@@ -1,2 +1,5 @@
 .vscode
 .idea
+.firebase
+.firebaserc
+firebase.json

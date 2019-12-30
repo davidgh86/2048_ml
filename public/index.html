@@ -1,10 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <title>Title of the document</title>
-        <!-- <style scoped lang="scss">
-            @import 'style.scss';
-        </style> -->
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="manifest" href="/manifest.json">
+        <!-- ios support -->
+        <link rel="apple-touch-icon" href="/icons/icon-96x96.png">
+        <meta name="apple-mobile-web-app-status-bar" content="#aa7700">
+        <meta name="theme-color" content="#FFE1C4">
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
@@ -68,6 +73,30 @@
             <div class="space-left"></div>
             
         </div>
+        <!-- The core Firebase JS SDK is always required and must be listed first 7.6.1 -->
+        <script src="https://www.gstatic.com/firebasejs/7.5.2/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.5.2/firebase-firestore.js"></script>
+
+        <!--script src="https://www.gstatic.com/firebasejs/7.5.2/firebase-analytics.js"></script-->
+
+        <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCMPmUONrnBGx47AVaUiPAIjEK-Grv4mOQ",
+            authDomain: "ml-a1bd3.firebaseapp.com",
+            databaseURL: "https://ml-a1bd3.firebaseio.com",
+            projectId: "ml-a1bd3",
+            storageBucket: "ml-a1bd3.appspot.com",
+            messagingSenderId: "148206286040",
+            appId: "1:148206286040:web:b8764313c99b6ab32093ad",
+            measurementId: "G-1DG2FXT254"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        //firebase.analytics();
+        
+        </script>
+        <script src="app.js"></script>
         <script src="hammer.min.js"></script>
         <script src="2048.js"></script>
     </body>
