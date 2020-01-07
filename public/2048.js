@@ -13,18 +13,18 @@ function initializeDBListener(genetics) {
     })
   // real-time listener
   db.collection('genomes').onSnapshot((snapshot) => {
-    // console.log(snapshot.docChanges())
     snapshot.docChanges().forEach((change) => {
-        // console.log(change, change.doc.data(), change.doc.id)
         if (change.type === 'added'){
           genetics.genomes.push(change.doc.data())
-            //renderRecipe(change.doc.data(), change.doc.id)
         }
-        // if (change.type === 'removed'){
-        //     removeRecipe(change.doc.id)
-        // }
     });
-    genetics.generateNextGenome()
+    if (iaIsLearning()){
+      genetics.generateNextGenome()
+    }else{
+      genetics.sortGenomes();
+      console.log(JSON.stringify(genetics.genomes[0]))
+      genetics.currentGenome=genetics.genomes[0];
+    }
   })
 }
 
@@ -50,7 +50,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   //GameManager.prototype.
   function iterate (gameManager){
-    //alert("fsda")
     gameManager.makeNextMove();
   }
 
@@ -155,7 +154,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     //this.genomes.push(this.currentGenome)
   }
 
-
+  //HTMLActuator.prototype.iaIsLearning = function(){
+  function iaIsLearning(){
+    return document.getElementById("learningcheck").checked
+  }
 
   EvolutionaryGenetics.prototype.generateRandomGenome = function(){
     return {
@@ -454,7 +456,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Restart the game
   GameManager.prototype.restart = function () {
     this.actuator.restart();
-    this.genetics.evolve();
+    if (!iaIsLearning()){
+      this.genetics.evolve();
+    }
     this.setup();
   };
   
