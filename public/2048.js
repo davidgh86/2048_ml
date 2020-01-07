@@ -456,8 +456,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Restart the game
   GameManager.prototype.restart = function () {
     this.actuator.restart();
-    if (!iaIsLearning()){
+    if (iaIsLearning()){
       this.genetics.evolve();
+    }else{
+      this.sortGenomes()
+      this.currentGenome=this.genomes[0];
     }
     this.setup();
   };
