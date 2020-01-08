@@ -50,7 +50,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   //GameManager.prototype.
   function iterate (gameManager){
-    //alert("fsda")
     gameManager.makeNextMove();
   }
 
@@ -175,12 +174,25 @@ document.addEventListener("DOMContentLoaded", async function () {
     this.generateNextGenome();
   }
 
+  EvolutionaryGenetics.prototype.isLearning = function(){
+    return localStorage.getItem("mode")==="learning"
+  }
+
   EvolutionaryGenetics.prototype.generateNextGenome = function(){
-    if (this.genomes.length<2){
-      this.currentGenome = this.generateRandomGenome();
-    }
-    else{
-      this.makeChild()
+    if (!this.isLearning()){
+      if(this.genomes.length<1){
+        this.currentGenome = this.generateRandomGenome();
+      }else{
+        this.sortGenomes()
+        this.currentGenome = this.genomes[0];
+      }
+    }else{
+      if (this.genomes.length<2){
+        this.currentGenome = this.generateRandomGenome();
+      }
+      else{
+        this.makeChild()
+      }
     }
   }
 

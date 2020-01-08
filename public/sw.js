@@ -1,15 +1,14 @@
-const staticCacheName = 'site-static-v5';
-const dynamicCacheName = 'site-dynamic-v5'
+const staticCacheName = 'site-static-v10';
+const dynamicCacheName = 'site-dynamic-v10'
 const assets = [
     '/',
-    '/index.html',
+    //'/index.html',
     '/app.js',
     '/hammer.min.js',
     '/style.css',
     '/2048.js',
     '/404.html',
-    //'https://www.gstatic.com/firebasejs/7.5.2/firebase-app.js',
-    //'https://www.gstatic.com/firebasejs/7.5.2/firebase-firestore.js'
+    //'/game.html',
 ];
 
 // cache size limit function
@@ -73,6 +72,3 @@ self.addEventListener('fetch', evt => {
         )
     }
 });
-
-
-
