@@ -173,9 +173,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   EvolutionaryGenetics.prototype.evolve = function(){
-    this.currentGenome["score"] = this.gameManager.score;
     //this.genomes.push(this.currentGenome);
-    persistGenome(this.currentGenome)
+    if (this.isLearning()){
+      this.currentGenome["score"] = this.gameManager.score;
+      persistGenome(this.currentGenome)
+    }
     
     this.generateNextGenome();
   }
@@ -186,6 +188,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   EvolutionaryGenetics.prototype.generateNextGenome = function(){
     if (!this.isLearning()){
+      console.log("not learning")
       if(this.genomes.length<1){
         this.currentGenome = this.generateRandomGenome();
       }else{
@@ -193,6 +196,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         this.currentGenome = this.genomes[0];
       }
     }else{
+      console.log("learning")
       if (this.genomes.length<2){
         this.currentGenome = this.generateRandomGenome();
       }
@@ -200,6 +204,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         this.makeChild()
       }
     }
+    console.log(JSON.stringify(this.currentGenome))
   }
 
   function randomChoice(propOne, propTwo) {
@@ -233,7 +238,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (Math.random() < this.mutationRate) {
       this.currentGenome.maximumPositionColWeigth = this.currentGenome.maximumPositionColWeigth + Math.random() * this.mutationStep * 2 - this.mutationStep;
     }
-    console.log(JSON.stringify(this.currentGenome))
+    console.log("--->"+JSON.stringify(this.currentGenome))
   }
 
   EvolutionaryGenetics.prototype.sortGenomes = function(){
