@@ -1,109 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>Title of the document</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <link rel="manifest" href="/manifest.json">
-        <!-- ios support -->
-        <link rel="apple-touch-icon" href="/icons/icon-96x96.png">
-        <meta name="apple-mobile-web-app-status-bar" content="#aa7700">
-        <meta name="theme-color" content="#FFE1C4">
-        <link rel="stylesheet" type="text/css" href="style.css">
-    </head>
-    <body>
-        <input type="checkbox" checked id="learningcheck">Learning
-        <div class="container">
-            
-            <div class="heading">
-            <h1 class="title">2048</h1>
-            <div class="score-container">0</div>
-            </div>
-            <p class="game-intro">Join the numbers and get to the <strong>2048 tile!</strong></p>
-        
-            <div class="game-container">
-            <div class="game-message">
-                <p></p>
-                <div class="lower">
-                <a class="retry-button">Try again</a>
-                </div>
-            </div>
-            
-            <div class="grid-container">
-                <div class="grid-row">
-                <div class="grid-cell"></div>
-                <div class="grid-cell"></div>
-                <div class="grid-cell"></div>
-                <div class="grid-cell"></div>
-                </div>
-                <div class="grid-row">
-                <div class="grid-cell"></div>
-                <div class="grid-cell"></div>
-                <div class="grid-cell"></div>
-                <div class="grid-cell"></div>
-                </div>
-                <div class="grid-row">
-                <div class="grid-cell"></div>
-                <div class="grid-cell"></div>
-                <div class="grid-cell"></div>
-                <div class="grid-cell"></div>
-                </div>
-                <div class="grid-row">
-                <div class="grid-cell"></div>
-                <div class="grid-cell"></div>
-                <div class="grid-cell"></div>
-                <div class="grid-cell"></div>
-                </div>
-            </div>
-        
-            <div class="tile-container">
-        
-            </div>
-            </div>
-        </div>
-        <p>
-            Created by <a href="https://github.com/davidgh86" target="_blank">José David García</a>
-            using the <a href="https://codepen.io/camsong/pen/wcKrg" target="_blank">game code</a> by <a href="http://gabrielecirulli.com" target="_blank">Gabriele Cirulli.</a> Based on <a href="https://itunes.apple.com/us/app/1024!/id823499224" target="_blank">1024 by Veewo Studio</a> and conceptually similar to <a href="http://asherv.com/threes/" target="_blank">Threes by Asher Vollmer.</a>
-        </p>
-        <div id="history-scores" class="history-grids">
-            
-            <div></div>
-            <div>
-                score
-            </div>
-            <div>
-                maximum
-            </div>
-            <div class="space-left"></div>
-            
-        </div>
-        <!-- The core Firebase JS SDK is always required and must be listed first 7.6.1 -->
-        <script src="https://www.gstatic.com/firebasejs/7.5.2/firebase-app.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/7.5.2/firebase-firestore.js"></script>
+<head>
+    <title>Title of the document</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="manifest" href="/manifest.json">
+    <!-- ios support -->
+    <link rel="apple-touch-icon" href="/icons/icon-96x96.png">
+    <meta name="apple-mobile-web-app-status-bar" content="#aa7700">
+    <meta name="theme-color" content="#FFE1C4">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <form>
+        <input type="radio" id="learning-radio" name="mode" value="learning" checked/>learning</br>
+        <ul id="learning-mode-options">
+            <li style="list-style-type: none;">
+                <input type="radio" name="learning-mode" value="evolutionary" checked/>evolutionary
+            </li>
+            <li style="list-style-type: none;">
+                <input type="radio" name="learning-mode" value="neural-network"/>deep learning
+            </li>
+        </ul></br>
+        <input type="radio" name="mode" value="playing"/>playing
+    </form>
+    <input type="submit" value="Go to game" onclick="goToGame()"/>
 
-        <!--script src="https://www.gstatic.com/firebasejs/7.5.2/firebase-analytics.js"></script-->
+    <script>
+        var radio = document.querySelectorAll('input[name="mode"]');
+        function goToGame(){
+            localStorage.setItem("mode", document.querySelector('input[name="mode"]:checked').value);
+            localStorage.setItem("learning-mode", document.querySelector('input[name="learning-mode"]:checked').value);
+            window.location='/game.html';
+        }
 
-        <script>
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCMPmUONrnBGx47AVaUiPAIjEK-Grv4mOQ",
-            authDomain: "ml-a1bd3.firebaseapp.com",
-            databaseURL: "https://ml-a1bd3.firebaseio.com",
-            projectId: "ml-a1bd3",
-            storageBucket: "ml-a1bd3.appspot.com",
-            messagingSenderId: "148206286040",
-            appId: "1:148206286040:web:b8764313c99b6ab32093ad",
-            measurementId: "G-1DG2FXT254"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        //firebase.analytics();
-        
-        </script>
-        <script src="app.js"></script>
-        <script src="hammer.min.js"></script>
-        <script src="2048.js"></script>
-    </body>
-</html>  
-  
+        function changeHandler(event) {
+            
+            let learningOptions = document.getElementById('learning-mode-options');
+            if ( this.value==='learning') {
+                learningOptions.style.display = 'inline-block';
+            } else { 
+                learningOptions.style.display = 'none';
+            }
+        }
+
+        radio[0].addEventListener('change', changeHandler);
+        radio[1].addEventListener('change', changeHandler);
+
+    </script>
+</body>
+</html>

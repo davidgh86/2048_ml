@@ -13,18 +13,18 @@ function initializeDBListener(genetics) {
     })
   // real-time listener
   db.collection('genomes').onSnapshot((snapshot) => {
+    // console.log(snapshot.docChanges())
     snapshot.docChanges().forEach((change) => {
+        // console.log(change, change.doc.data(), change.doc.id)
         if (change.type === 'added'){
           genetics.genomes.push(change.doc.data())
+            //renderRecipe(change.doc.data(), change.doc.id)
         }
+        // if (change.type === 'removed'){
+        //     removeRecipe(change.doc.id)
+        // }
     });
-    if (iaIsLearning()){
-      genetics.generateNextGenome()
-    }else{
-      genetics.sortGenomes();
-      console.log(JSON.stringify(genetics.genomes[0]))
-      genetics.currentGenome=genetics.genomes[0];
-    }
+    genetics.generateNextGenome()
   })
 }
 
@@ -154,10 +154,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     //this.genomes.push(this.currentGenome)
   }
 
-  //HTMLActuator.prototype.iaIsLearning = function(){
-  function iaIsLearning(){
-    return document.getElementById("learningcheck").checked
-  }
+
 
   EvolutionaryGenetics.prototype.generateRandomGenome = function(){
     return {
@@ -177,12 +174,25 @@ document.addEventListener("DOMContentLoaded", async function () {
     this.generateNextGenome();
   }
 
+  EvolutionaryGenetics.prototype.isLearning = function(){
+    return localStorage.getItem("mode")==="learning"
+  }
+
   EvolutionaryGenetics.prototype.generateNextGenome = function(){
-    if (this.genomes.length<2){
-      this.currentGenome = this.generateRandomGenome();
-    }
-    else{
-      this.makeChild()
+    if (!this.isLearning()){
+      if(this.genomes.length<1){
+        this.currentGenome = this.generateRandomGenome();
+      }else{
+        this.sortGenomes()
+        this.currentGenome = this.genomes[0];
+      }
+    }else{
+      if (this.genomes.length<2){
+        this.currentGenome = this.generateRandomGenome();
+      }
+      else{
+        this.makeChild()
+      }
     }
   }
 
@@ -456,12 +466,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Restart the game
   GameManager.prototype.restart = function () {
     this.actuator.restart();
-    if (iaIsLearning()){
-      this.genetics.evolve();
-    }else{
-      this.sortGenomes()
-      this.currentGenome=this.genomes[0];
-    }
+    this.genetics.evolve();
     this.setup();
   };
   
