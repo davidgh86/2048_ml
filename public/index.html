@@ -23,25 +23,41 @@
                 <input type="radio" name="learning-mode" value="neural-network"/>deep learning
             </li>
         </ul></br>
-        <input type="radio" name="mode" value="playing"/>playing
+        <input type="radio" name="mode" value="playing"/>playing</br>
+        <ul id="save-moves-list" style="display:none">
+            <li style="list-style-type: none;">
+                <input type="checkbox" id="save-moves" checked/>save moves
+            </li>
+        </ul>
+
     </form>
     <input type="submit" value="Go to game" onclick="goToGame()"/>
 
     <script>
         var radio = document.querySelectorAll('input[name="mode"]');
         function goToGame(){
+            let modeValue = document.querySelector('input[name="mode"]:checked').value
             localStorage.setItem("mode", document.querySelector('input[name="mode"]:checked').value);
-            localStorage.setItem("learning-mode", document.querySelector('input[name="learning-mode"]:checked').value);
+            if (modeValue === 'learning'){
+                localStorage.setItem("learning-mode", document.querySelector('input[name="learning-mode"]:checked').value);
+                localStorage.setItem("save-moves", "none");
+            }else{
+                localStorage.setItem("learning-mode", "none");
+                localStorage.setItem("save-moves", document.querySelector("#save-moves").checked);
+            }
             window.location='/game.html';
         }
 
         function changeHandler(event) {
             
             let learningOptions = document.getElementById('learning-mode-options');
+            let saveOption = document.getElementById('save-moves-list');
             if ( this.value==='learning') {
                 learningOptions.style.display = 'inline-block';
+                saveOption.style.display = 'none';
             } else { 
                 learningOptions.style.display = 'none';
+                saveOption.style.display = 'inline-block';
             }
         }
 

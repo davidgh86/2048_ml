@@ -11,18 +11,13 @@ function initializeDBListener(genetics) {
           // console.log("persistence is not available")
       }
     })
+
   // real-time listener
   db.collection('genomes').onSnapshot((snapshot) => {
-    // console.log(snapshot.docChanges())
     snapshot.docChanges().forEach((change) => {
-        // console.log(change, change.doc.data(), change.doc.id)
         if (change.type === 'added'){
           genetics.genomes.push(change.doc.data())
-            //renderRecipe(change.doc.data(), change.doc.id)
         }
-        // if (change.type === 'removed'){
-        //     removeRecipe(change.doc.id)
-        // }
     });
     genetics.generateNextGenome()
   })
@@ -33,6 +28,18 @@ function persistGenome(genome){
       .catch(err => {
             console.log(err)
       })
+}
+
+async function persistMove(grid, move){
+  db.collection('moves').add(
+      {
+        grid: JSON.stringify(grid), 
+        move
+      }
+    )
+    .catch(err => {
+      console.log(err)
+  })
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
@@ -46,7 +53,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
     
   });
-
 
   //GameManager.prototype.
   function iterate (gameManager){
@@ -373,6 +379,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   GameManager.prototype.makeNextMove = function(){
     let nextMove = this.getNextMove();
+    if (localStorage.getItem("save-moves")==="true"){
+      persistMove(this.grid.toArray(), nextMove);
+    }
+    
     this.inputManager.emit("move", nextMove)
   }
 
