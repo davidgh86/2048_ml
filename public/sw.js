@@ -1,14 +1,14 @@
-const staticCacheName = 'site-static-v10';
-const dynamicCacheName = 'site-dynamic-v10'
+const staticCacheName = 'site-static-v11';
+const dynamicCacheName = 'site-dynamic-v11'
 const assets = [
     '/',
-    //'/index.html',
+    '/index.html',
     '/app.js',
     '/hammer.min.js',
     '/style.css',
     '/2048.js',
     '/404.html',
-    //'/game.html',
+    '/game.html',
 ];
 
 // cache size limit function
