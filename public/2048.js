@@ -30,6 +30,28 @@ function persistGenome(genome){
       })
 }
 
+function downloadMoves(){
+  let csvContent = "data:text/csv;charset=utf-8,";
+  
+  db.collection('moves').get().then(function(querySnapshot) {
+    querySnapshot.forEach(function(doc) {
+      if (!!doc && !!doc.data() && !!doc.data().grid){
+        let row = doc.data().grid.replace(/[\[\]]+/g, '')+','+doc.data().move;
+        csvContent += row + "\r\n";
+      }
+    });
+    var encodedUri = encodeURI(csvContent);
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "moves.csv");
+    document.body.appendChild(link); // Required for FF
+
+    link.click();
+  });
+  
+  
+}
+
 async function persistMove(grid, move){
   db.collection('moves').add(
       {
