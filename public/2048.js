@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
     }else{
       console.log("learning")
-      if (this.genomes.length<2){
+      if (this.genomes.length<4){
         this.currentGenome = this.generateRandomGenome();
       }
       else{
