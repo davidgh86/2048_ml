@@ -173,7 +173,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     this.gameManager = gameManager;
 
     //rate of mutation
-    this.mutationRate = 0.2;
+    this.mutationRate = 0.05;
     //helps calculate mutation
     this.mutationStep = 0.2;
 
@@ -242,10 +242,26 @@ document.addEventListener("DOMContentLoaded", async function () {
     this.sortGenomes()
     this.currentGenome = {
       id: Math.random(),
-      holesWeigth: randomChoice(this.genomes[0].holesWeigth, this.genomes[1].holesWeigth),
-      roughnessWeigth: randomChoice(this.genomes[0].roughnessWeigth, this.genomes[1].roughnessWeigth),
-      maximumPositionRowWeigth: randomChoice(this.genomes[0].maximumPositionRowWeigth, this.genomes[1].maximumPositionRowWeigth),
-      maximumPositionColWeigth: randomChoice(this.genomes[0].maximumPositionColWeigth, this.genomes[1].maximumPositionColWeigth)
+      holesWeigth: randomChoice(this.genomes[3].holesWeigth, this.genomes[2].holesWeigth),
+      roughnessWeigth: randomChoice(this.genomes[3].roughnessWeigth, this.genomes[2].roughnessWeigth),
+      maximumPositionRowWeigth: randomChoice(this.genomes[3].maximumPositionRowWeigth, this.genomes[2].maximumPositionRowWeigth),
+      maximumPositionColWeigth: randomChoice(this.genomes[3].maximumPositionColWeigth, this.genomes[2].maximumPositionColWeigth)
+    };
+
+    this.currentGenome = {
+      id: Math.random(),
+      holesWeigth: randomChoice(this.currentGenome.holesWeigth, this.genomes[1].holesWeigth),
+      roughnessWeigth: randomChoice(this.currentGenome.roughnessWeigth, this.genomes[1].roughnessWeigth),
+      maximumPositionRowWeigth: randomChoice(this.currentGenome.maximumPositionRowWeigth, this.genomes[1].maximumPositionRowWeigth),
+      maximumPositionColWeigth: randomChoice(this.currentGenome.maximumPositionColWeigth, this.genomes[1].maximumPositionColWeigth)
+    };
+
+    this.currentGenome = {
+      id: Math.random(),
+      holesWeigth: randomChoice(this.currentGenome.holesWeigth, this.genomes[0].holesWeigth),
+      roughnessWeigth: randomChoice(this.currentGenome.roughnessWeigth, this.genomes[0].roughnessWeigth),
+      maximumPositionRowWeigth: randomChoice(this.currentGenome.maximumPositionRowWeigth, this.genomes[0].maximumPositionRowWeigth),
+      maximumPositionColWeigth: randomChoice(this.currentGenome.maximumPositionColWeigth, this.genomes[0].maximumPositionColWeigth)
     };
 
     if (Math.random() < this.mutationRate) {
