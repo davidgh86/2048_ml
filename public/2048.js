@@ -192,7 +192,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       maximumPositionRowWeigth: Math.random() - 0.5,
       maximumPositionColWeigth: Math.random() - 0.5,
       fusionValuesWeigth: Math.random() - 0.5,
-      adjacentsWeigth: Math.random() - 0.5
+      adjacentsWeigth: Math.random() - 0.5,
+      moveHighestsPenaltyWeigth: Math.random() - 0.5
     };
   }
 
@@ -212,7 +213,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   EvolutionaryGenetics.prototype.generateNextGenome = function(){
     if (!this.isLearning()){
-      console.log("not learning")
       if(this.genomes.length<1){
         this.currentGenome = this.generateRandomGenome();
       }else{
@@ -220,7 +220,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         this.currentGenome = this.genomes[0];
       }
     }else{
-      console.log("learning")
       if (this.genomes.length<4){
         this.currentGenome = this.generateRandomGenome();
       }
@@ -228,7 +227,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         this.makeChild()
       }
     }
-    console.log(JSON.stringify(this.currentGenome))
   }
 
   function randomChoice(propOne, propTwo) {
@@ -250,6 +248,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       maximumPositionColWeigth: randomChoice(this.genomes[3].maximumPositionColWeigth, this.genomes[2].maximumPositionColWeigth),
       fusionValuesWeigth: randomChoice(this.genomes[3].fusionValuesWeigth, this.genomes[2].fusionValuesWeigth),
       adjacentsWeigth: randomChoice(this.genomes[3].adjacentsWeigth, this.genomes[2].adjacentsWeigth),
+      moveHighestsPenaltyWeigth: randomChoice(this.genomes[3].moveHighestsPenaltyWeigth, this.genomes[2].moveHighestsPenaltyWeigth),
     };
 
     this.currentGenome = {
@@ -260,6 +259,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       maximumPositionColWeigth: randomChoice(this.currentGenome.maximumPositionColWeigth, this.genomes[1].maximumPositionColWeigth),
       fusionValuesWeigth: randomChoice(this.currentGenome.fusionValuesWeigth, this.genomes[1].fusionValuesWeigth),
       adjacentsWeigth: randomChoice(this.currentGenome.adjacentsWeigth, this.genomes[1].adjacentsWeigth),
+      moveHighestsPenaltyWeigth: randomChoice(this.currentGenome.moveHighestsPenaltyWeigth, this.genomes[1].moveHighestsPenaltyWeigth),
     };
 
     this.currentGenome = {
@@ -270,6 +270,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       maximumPositionColWeigth: randomChoice(this.currentGenome.maximumPositionColWeigth, this.genomes[0].maximumPositionColWeigth),
       fusionValuesWeigth: randomChoice(this.currentGenome.fusionValuesWeigth, this.genomes[0].fusionValuesWeigth),
       adjacentsWeigth: randomChoice(this.currentGenome.adjacentsWeigth, this.genomes[0].adjacentsWeigth),
+      moveHighestsPenaltyWeigth: randomChoice(this.currentGenome.moveHighestsPenaltyWeigth, this.genomes[0].moveHighestsPenaltyWeigth),
     };
 
     if (Math.random() < this.mutationRate) {
@@ -289,6 +290,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
     if (Math.random() < this.mutationRate) {
       this.currentGenome.adjacentsWeigth = this.currentGenome.adjacentsWeigth + Math.random() * this.mutationStep * 2 - this.mutationStep;
+    }
+    if (Math.random() < this.mutationRate) {
+      this.currentGenome.moveHighestsPenaltyWeigth = this.currentGenome.moveHighestsPenaltyWeigth + Math.random() * this.mutationStep * 2 - this.mutationStep;
     }
     console.log("--->"+JSON.stringify(this.currentGenome))
   }
@@ -311,6 +315,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       maximumPositionHighColumn: maximumPosition.column,
       adjacents: this.calculateAdjacents(grid),
       fusionValues: this.calculateFusionValue(grid),
+      moveHighestsPenalty: this.calculateHighestMovePenalty(grid)
     };
 
     rating += algorithm.holes * this.currentGenome.holesWeigth;
@@ -319,6 +324,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     rating += algorithm.maximumPositionHighColumn * this.currentGenome.maximumPositionColWeigth;
     rating += algorithm.adjacents * this.currentGenome.adjacentsWeigth;
     rating += algorithm.fusionValues * this.currentGenome.fusionValuesWeigth;
+    rating += algorithm.moveHighestsPenalty * this.currentGenome.moveHighestsPenaltyWeigth;
 
     return rating
   }
@@ -375,6 +381,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     let fusionCurrenArrayValue = sortedCurrentArray.map((x) => {return Math.pow(x, 2);}).reduce((total, num)=>{return total + num});
     let fusionArrayGrid = sortedArrayGrid.map((x) => {return Math.pow(x, 2);}).reduce((total, num)=>{return total + num});
     return Math.sqrt(fusionArrayGrid-fusionCurrenArrayValue);
+  }
+
+  EvolutionaryGenetics.prototype.calculateHighestMovePenalty = function(arrayGrid){
+    let currentArrayGrid = this.gameManager.grid.toArray();
+    let result = 0;
+    for (let row = 0; row<arrayGrid.length; row++){
+      for (let col= 0; col<arrayGrid[row].length; col++){
+        if (arrayGrid[row][col]!==currentArrayGrid[row][col]){
+          result += currentArrayGrid[row][col];
+        }
+      }
+    }
+    return result;
   }
 
   EvolutionaryGenetics.prototype.calculateAdjacents = function(arrayGrid){
