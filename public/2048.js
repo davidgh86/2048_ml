@@ -17,18 +17,14 @@ function initializeDBListener(genetics, actuator) {
     snapshot.docChanges().forEach((change) => {
         if (change.type === 'added'){
           genetics.genomes.push(change.doc.data())
-          // actuator.chartData.push({
-          //   date: change.doc.data().date,
-          //   score: change.doc.data().score
-          // });
-          actuator.chart.data.labels.push(change.doc.data().date);
-          actuator.chart.data.datasets.forEach((dataset) => {
-            dataset.data.push(change.doc.data().score);
+          actuator.chartData.push({
+            date: change.doc.data().date,
+            score: change.doc.data().score
           });
-          actuator.chart.update();
         }
     });
-    genetics.generateNextGenome()
+    actuator.updateChart();
+    genetics.generateNextGenome();
   })
 }
 
@@ -940,6 +936,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     this.scoreContainer   = document.getElementsByClassName("score-container")[0];
     this.messageContainer = document.getElementsByClassName("game-message")[0];
 
+    this.chartData = []
+
     this.score = 0;
   }
   
@@ -969,6 +967,22 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   };
 
+  HTMLActuator.prototype.updateChart = function () {
+    this.chartData.sort((a,b) => {
+      return new Date(a.date) - new Date(b.date);
+    });
+    this.chart.data.labels = [];
+    this.chart.data.datasets.data = [];
+    this.chartData.forEach((scores) => {
+      this.chart.data.labels.push(scores.date);
+      this.chart.data.datasets.forEach((dataset) => {
+        dataset.data.push(scores.score);
+      });
+    })
+    
+    this.chart.update();
+  }
+
   HTMLActuator.prototype.initializeChart = function () {
     let ctx = document.getElementById('chart').getContext('2d');
     this.chart = new Chart(ctx, {
@@ -979,7 +993,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         data: {
             labels: [],
             datasets: [{
-                label: 'My First dataset',
+                label: 'Scores',
                 borderColor: 'rgb(255, 99, 132)',
                 data: []
             }]
