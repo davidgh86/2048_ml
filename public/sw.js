@@ -1,11 +1,12 @@
-const staticCacheName = 'site-static-v18';
-const dynamicCacheName = 'site-dynamic-v18'
+const staticCacheName = 'site-static-v19';
+const dynamicCacheName = 'site-dynamic-v19'
 const assets = [
     '/',
     '/index.html',
     '/app.js',
     '/hammer.min.js',
     '/style.css',
+    '/chart.js',
     '/2048.js',
     '/404.html',
     '/game.html',

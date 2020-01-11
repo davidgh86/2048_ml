@@ -1,6 +1,6 @@
 const db = firebase.firestore()
 
-function initializeDBListener(genetics) {
+function initializeDBListener(genetics, actuator) {
   db.enablePersistence()
   .catch(err => {
       if (err.code == 'failed-precondition'){
@@ -17,6 +17,15 @@ function initializeDBListener(genetics) {
     snapshot.docChanges().forEach((change) => {
         if (change.type === 'added'){
           genetics.genomes.push(change.doc.data())
+          // actuator.chartData.push({
+          //   date: change.doc.data().date,
+          //   score: change.doc.data().score
+          // });
+          actuator.chart.data.labels.push(change.doc.data().date);
+          actuator.chart.data.datasets.forEach((dataset) => {
+            dataset.data.push(change.doc.data().score);
+          });
+          actuator.chart.update();
         }
     });
     genetics.generateNextGenome()
@@ -69,7 +78,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     window.requestAnimationFrame(async function () {
       let manager = new GameManager(4, KeyboardInputManager, HTMLActuator, EvolutionaryGenetics);
       let genetics = manager.genetics;
-      initializeDBListener(genetics)
+      manager.actuator.initializeChart();
+      initializeDBListener(genetics, manager.actuator);
       
       setInterval(()=>iterate(manager), 500)
     });
@@ -201,6 +211,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     //this.genomes.push(this.currentGenome);
     if (this.isLearning()){
       this.currentGenome["score"] = this.gameManager.score;
+      this.currentGenome["date"] = new Date(Date.now()).toISOString();
       persistGenome(this.currentGenome)
     }
     
@@ -928,7 +939,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     this.tileContainer    = document.getElementsByClassName("tile-container")[0];
     this.scoreContainer   = document.getElementsByClassName("score-container")[0];
     this.messageContainer = document.getElementsByClassName("game-message")[0];
-  
+
     this.score = 0;
   }
   
@@ -950,10 +961,32 @@ document.addEventListener("DOMContentLoaded", async function () {
   
       if (metadata.over) {
         self.updateHistoryList(metadata.score, metadata.maximum);
+        //self.initializeChart();
       } // You lose
       //if (metadata.won) self.message(false); // You win!
       //if (metadata.won) self.message(true); // You win!
       
+    });
+  };
+
+  HTMLActuator.prototype.initializeChart = function () {
+    let ctx = document.getElementById('chart').getContext('2d');
+    this.chart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
+
+        // The data for our dataset
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'My First dataset',
+                borderColor: 'rgb(255, 99, 132)',
+                data: []
+            }]
+        },
+
+        // Configuration options go here
+        options: {}
     });
   };
 
