@@ -972,13 +972,11 @@ document.addEventListener("DOMContentLoaded", async function () {
       return new Date(a.date) - new Date(b.date);
     });
     this.chart.data.labels = [];
-    this.chart.data.datasets.data = [];
+    this.chart.data.datasets[0].data = [];
     this.chartData.forEach((scores) => {
       this.chart.data.labels.push(scores.date);
-      this.chart.data.datasets.forEach((dataset) => {
-        dataset.data.push(scores.score);
-      });
-    })
+      this.chart.data.datasets[0].data.push(scores.score);
+    });
     
     this.chart.update();
   }
