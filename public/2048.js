@@ -179,9 +179,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     this.gameManager = gameManager;
 
     //rate of mutation
-    this.mutationRate = 0.05;
+    this.mutationRate = 0.2;
     //helps calculate mutation
-    this.mutationStep = 0.2;
+    this.mutationStep = 0.3;
 
     this.currentGenome = this.generateRandomGenome();
 
@@ -231,11 +231,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         this.currentGenome = this.generateRandomGenome();
       }
       else{
-        if (Math.random() < 0.1) {
-          this.currentGenome = this.generateRandomGenome();
-        }else {
-          this.makeChild()
-        }
+        this.makeChild();
       }
     }
   }
