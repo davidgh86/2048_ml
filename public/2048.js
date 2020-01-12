@@ -231,7 +231,11 @@ document.addEventListener("DOMContentLoaded", async function () {
         this.currentGenome = this.generateRandomGenome();
       }
       else{
-        this.makeChild()
+        if (Math.random() < 0.1) {
+          this.currentGenome = this.generateRandomGenome();
+        }else {
+          this.makeChild()
+        }
       }
     }
   }
